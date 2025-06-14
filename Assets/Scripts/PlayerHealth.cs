@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -146,6 +147,48 @@ public class PlayerHealth : MonoBehaviour
             healthText.text = $"Health: {currentHealth}/{maxHealth}";
         }
     }
+
+    public void SetTemporaryInvincibility(float duration)
+    {
+        StopCoroutine("TemporaryInvincibility");
+        StartCoroutine(TemporaryInvincibility(duration));
+    }
+
+    private IEnumerator TemporaryInvincibility(float duration)
+    {
+        isInvincible = true;
+
+        // Optional: flash effect while invincible
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.clear;
+                yield return new WaitForSeconds(0.05f);
+                spriteRenderer.color = originalColor;
+                yield return new WaitForSeconds(0.05f);
+            }
+
+            elapsed += 0.1f;
+        }
+
+        isInvincible = false;
+        if (spriteRenderer != null)
+            spriteRenderer.color = originalColor;
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Trap"))
+        {
+            Debug.Log("Player touched a trap!");
+            currentHealth = 0;
+            UpdateHealthUI();
+            Die();
+        }
+    }
+
 
     void Die()
     {

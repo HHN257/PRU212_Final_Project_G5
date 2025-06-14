@@ -26,7 +26,7 @@ public class EnemyController : MonoBehaviour
     private Vector2 startPosition;
     private bool movingRight = true;
     private float waitTimer = 0f;
-    private bool isWaiting = false;
+    //private bool isWaiting = false;
     private float lastAttackTime = 0f;
 
     // Components
@@ -111,21 +111,10 @@ public class EnemyController : MonoBehaviour
 
     void Patrol()
     {
-        if (isWaiting)
-        {
-            currentState = EnemyState.Waiting;
-            return;
-        }
-
         // Check if we should turn around
         if (ShouldTurnAround())
         {
-            isWaiting = true;
-            waitTimer = waitTime;
-            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-            if (animator != null)
-                animator.SetBool("isWalking", false);
-            return;
+            movingRight = !movingRight; // Flip immediately
         }
 
         // Move in current direction
@@ -146,7 +135,7 @@ public class EnemyController : MonoBehaviour
         rb.linearVelocity = new Vector2(direction.x * attackSpeed, rb.linearVelocity.y);
 
         // Flip sprite based on movement direction
-        spriteRenderer.flipX = direction.x < 0;
+        //spriteRenderer.flipX = direction.x < 0;
 
         // Set walking animation for chasing
         if (animator != null)
@@ -157,74 +146,89 @@ public class EnemyController : MonoBehaviour
 
     void Attack()
     {
-        // Stop movement during attack
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
 
-        // Trigger attack animation
         if (animator != null)
         {
             animator.SetBool("IsAttacking", true);
             animator.SetBool("isWalking", false);
         }
 
-        // Check if player is still in attack range
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
         if (distanceToPlayer <= attackRange)
         {
-            // Deal damage to player
             PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+            PlayerController playerController = player.GetComponent<PlayerController>();
+
             if (playerHealth != null && !playerHealth.IsInvincible())
             {
-                playerHealth.TakeDamage(attackDamage, transform.position);
+                if (playerController != null && playerController.IsBlocking)
+                {
+                    Debug.Log("Attack was blocked!");
+
+                    // Apply knockback to enemy
+                    float knockbackForce = 2f;
+                    Vector2 knockbackDir = (transform.position - player.position).normalized;
+                    rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
+                }
+                else
+                {
+                    playerHealth.TakeDamage(attackDamage, transform.position);
+                }
             }
         }
 
         lastAttackTime = Time.time;
-
-        // Reset attack animation after a short delay
-        Invoke("ResetAttackAnimation", 0.5f);
-        currentState = EnemyState.Chasing;
+        currentState = EnemyState.Waiting;
+        waitTimer = 0.5f;
     }
+
+
 
     void ResetAttackAnimation()
     {
         if (animator != null)
-        {
             animator.SetBool("IsAttacking", false);
-        }
+
+        currentState = EnemyState.Chasing;
     }
+
 
     void Wait()
     {
         waitTimer -= Time.deltaTime;
 
-        // Stop walking animation during wait
         if (animator != null)
             animator.SetBool("isWalking", false);
 
         if (waitTimer <= 0f)
         {
-            isWaiting = false;
-            movingRight = !movingRight; // Change direction
-            currentState = EnemyState.Patrolling;
+            animator.SetBool("IsAttacking", false); // reset attack animation
+            currentState = EnemyState.Chasing; // return to chasing after wait
         }
     }
 
+
     bool ShouldTurnAround()
     {
-        // Check if we've reached patrol distance
+        // Check patrol range
         float distanceFromStart = Vector2.Distance(transform.position, startPosition);
         if (distanceFromStart >= patrolDistance)
             return true;
 
-        // Check if there's ground ahead
-        Vector2 groundCheckPos = groundCheck.position;
-        groundCheckPos.x += movingRight ? groundCheckRadius : -groundCheckRadius;
+        // Cast ray ahead and down
+        Vector2 rayOrigin = groundCheck.position + new Vector3(movingRight ? 0.2f : -0.2f, 0f);
+        Vector2 rayDirection = Vector2.down;
+        float rayLength = 0.5f;
 
-        bool hasGround = Physics2D.OverlapCircle(groundCheckPos, groundCheckRadius, groundLayerMask);
+        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, rayDirection, rayLength, groundLayerMask);
 
-        return !hasGround;
+        Debug.DrawRay(rayOrigin, rayDirection * rayLength, Color.magenta);
+
+        return hit.collider == null;
     }
+
+
 
     // Visual debugging
     void OnDrawGizmosSelected()

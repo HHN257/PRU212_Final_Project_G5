@@ -1,14 +1,30 @@
+using System.Collections; // Add this for Coroutine support
 using UnityEngine;
 using UnityEngine.InputSystem; // Only if you're using the new Input System
-using System.Collections; // Add this for Coroutine support
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(SpriteRenderer))]
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] private Transform attackPoint;
+
+    public bool isAutoWalking = false;
+    public float autoWalkSpeed = 2f;
+    public string nextSceneName = "Level2"; // Set in Inspector or code
+    private bool canMove = true;
+    public bool IsBlocking => animator.GetBool("Block");
+
     public float moveSpeed = 5f;
     public float jumpForce = 12f;
+
+    public float rollSpeed = 8f;
+    public float rollDuration = 0.3f;
+
+    private bool isRolling = false;
+    public bool isInvincible = false;
+
 
     private Rigidbody2D rb;
     private Animator animator;
@@ -28,6 +44,20 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (isRolling) return;
+
+        bool isBlocking = Input.GetKey(KeyCode.L);
+        animator.SetBool("Block", isBlocking);
+
+        if (isRolling || !canMove) return; // Prevent all actions during roll
+
+        if (isBlocking)
+        {
+            // Stop horizontal movement immediately when blocking
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+        }
+
+
         // ---- Movement Input ----
         float move = Input.GetAxisRaw("Horizontal"); // Replace with new Input if needed
 
@@ -36,7 +66,19 @@ public class PlayerController : MonoBehaviour
 
         // Flip character sprite based on direction
         if (move != 0)
-            spriteRenderer.flipX = move < 0;
+        {
+            bool facingLeft = move < 0;
+            spriteRenderer.flipX = facingLeft;
+
+            // Flip attackPoint
+            if (attackPoint != null)
+            {
+                Vector3 attackPos = attackPoint.localPosition;
+                attackPos.x = Mathf.Abs(attackPos.x) * (facingLeft ? -1 : 1);
+                attackPoint.localPosition = attackPos;
+            }
+        }
+
 
         // ---- Jump Input ----
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
@@ -63,10 +105,21 @@ public class PlayerController : MonoBehaviour
         }
 
         // ---- Roll Input ----
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.K) && !isRolling)
         {
-            animator.SetTrigger("Roll");
+            StartCoroutine(Roll());
         }
+
+        if (Input.GetKey(KeyCode.L))
+        {
+            animator.SetBool("Block", true);
+        }
+        else
+        {
+            animator.SetBool("Block", false);
+        }
+
+
 
         // ---- Animation Parameters ----
         animator.SetBool("Grounded", isGrounded);
@@ -108,6 +161,16 @@ public class PlayerController : MonoBehaviour
             jumpPressed = false;
             isGrounded = false;
         }
+
+        if (isAutoWalking)
+        {
+            rb.linearVelocity = new Vector2(autoWalkSpeed, rb.linearVelocity.y);
+            //animator.SetBool("isWalking", true);
+            spriteRenderer.flipX = false; // or true depending on direction
+            return;
+        }
+
+
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -118,4 +181,60 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("Grounded", true);
         }
     }
+
+    public void TriggerAutoWalk()
+    {
+        isAutoWalking = true;
+        canMove = false;
+        StartCoroutine(LoadNextSceneAfterDelay());
+    }
+
+    private IEnumerator LoadNextSceneAfterDelay()
+    {
+        yield return new WaitForSeconds(5f); // Wait 3 seconds
+        LoadNextScene();
+    }
+
+
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            other.GetComponent<PlayerController>().TriggerAutoWalk();
+        }
+    }
+
+
+    private IEnumerator Roll()
+    {
+        isRolling = true;
+        animator.SetTrigger("Roll");
+
+        // 👉 Kích hoạt invincible trong PlayerHealth
+        if (TryGetComponent<PlayerHealth>(out var health))
+        {
+            health.SetTemporaryInvincibility(rollDuration);
+        }
+
+        float direction = spriteRenderer.flipX ? -1f : 1f;
+        float timer = 0f;
+
+        while (timer < rollDuration)
+        {
+            rb.linearVelocity = new Vector2(direction * rollSpeed, rb.linearVelocity.y);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        isRolling = false;
+    }
+
+
+    void LoadNextScene()
+    {
+        SceneManager.LoadScene(nextSceneName);
+    }
+
+
 }
