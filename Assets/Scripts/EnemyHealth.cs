@@ -60,7 +60,7 @@ public class EnemyHealth : MonoBehaviour
         {
             animator.SetBool("isHurt", true);
             animator.SetBool("isWalking", false);
-            animator.SetBool("IsAttacking", false);
+            //animator.SetBool("IsAttacking", false);
         }
 
         // Stun the enemy briefly
@@ -131,7 +131,13 @@ public class EnemyHealth : MonoBehaviour
     {
         Debug.Log(gameObject.name + " died!");
 
-        // Trigger death animation
+        //  Add score
+        GameManager.Instance.AddPoints(50); // Or any value you want
+
+        //  Drop coins
+        DropCoins();
+
+        //  Trigger death animation
         if (animator != null)
         {
             animator.SetBool("isDead", true);
@@ -140,19 +146,31 @@ public class EnemyHealth : MonoBehaviour
             animator.SetBool("isHurt", false);
         }
 
-        // Disable enemy controller
         if (enemyController != null)
             enemyController.enabled = false;
 
-        // Add death effects here:
-        // - Play death animation
-        // - Drop items/coins
-        // - Add score
-        // - Particle effects
-
-        // Destroy the enemy after death animation (adjust timing as needed)
         Destroy(gameObject, 1f);
     }
+
+    [SerializeField] private GameObject coinPrefab;
+    [SerializeField] private int coinsToDrop = 3;
+
+    void DropCoins()
+    {
+        if (coinPrefab == null)
+        {
+            Debug.LogWarning("Coin prefab is not assigned in EnemyHealth!");
+            return;
+        }
+
+        for (int i = 0; i < coinsToDrop; i++)
+        {
+            Vector3 spawnPos = transform.position + new Vector3(Random.Range(-0.5f, 0.5f), 0.3f, 0);
+            Instantiate(coinPrefab, spawnPos, Quaternion.identity);
+        }
+    }
+
+
 
     public bool IsStunned()
     {

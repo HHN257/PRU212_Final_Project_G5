@@ -35,7 +35,7 @@ public class EnemyController : MonoBehaviour
     private Animator animator; // Optional, if you have animations
 
     // States
-    public enum EnemyState { Patrolling, Chasing, Attacking, Waiting }
+    public enum EnemyState { Patrolling, Chasing, Attacking, ExecutingAttack }
     public EnemyState currentState = EnemyState.Patrolling;
 
     void Start()
@@ -94,18 +94,19 @@ public class EnemyController : MonoBehaviour
                 Attack();
                 break;
 
-            case EnemyState.Waiting:
-                Wait();
+            case EnemyState.ExecutingAttack:
+                // Enemy is in the middle of an attack animation, do nothing or prevent movement.
+                rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
                 break;
         }
 
         // Update animator parameters based on your setup
         if (animator != null)
         {
-            animator.SetBool("isWalking", rb.linearVelocity.x != 0 && currentState == EnemyState.Patrolling);
-            animator.SetBool("IsAttacking", currentState == EnemyState.Attacking);
+            animator.SetBool("isWalking", rb.linearVelocity.x != 0 && (currentState == EnemyState.Patrolling || currentState == EnemyState.Chasing));
             animator.SetBool("isHurt", false); // This will be controlled by EnemyHealth script
             animator.SetBool("isDead", false); // This will be controlled by EnemyHealth script
+            animator.SetBool("IsAttacking", currentState == EnemyState.Attacking || currentState == EnemyState.ExecutingAttack);
         }
     }
 
@@ -160,54 +161,37 @@ public class EnemyController : MonoBehaviour
             PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             PlayerController playerController = player.GetComponent<PlayerController>();
 
-            if (playerHealth != null && !playerHealth.IsInvincible())
-            {
-                if (playerController != null && playerController.IsBlocking)
-                {
-                    Debug.Log("Attack was blocked!");
+            //if (playerHealth != null && !playerHealth.IsInvincible())
+            //{
+            //    if (playerController != null && playerController.IsBlocking)
+            //    {
+            //        Debug.Log("Attack was blocked!");
 
-                    // Apply knockback to enemy
-                    float knockbackForce = 2f;
-                    Vector2 knockbackDir = (transform.position - player.position).normalized;
-                    rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
-                }
-                else
-                {
-                    playerHealth.TakeDamage(attackDamage, transform.position);
-                }
-            }
+            //        // Apply knockback to enemy
+            //        float knockbackForce = 2f;
+            //        Vector2 knockbackDir = (transform.position - player.position).normalized;
+            //        rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
+            //    }
+            //    else
+            //    {
+            //        playerHealth.TakeDamage(attackDamage, transform.position);
+            //    }
+            //}
         }
 
-        lastAttackTime = Time.time;
-        currentState = EnemyState.Waiting;
-        waitTimer = 0.5f;
+        // Instead of immediately changing state or setting cooldown here,
+        // we transition to a state where the animation plays out.
+        currentState = EnemyState.ExecutingAttack;
     }
-
-
 
     void ResetAttackAnimation()
     {
         if (animator != null)
             animator.SetBool("IsAttacking", false);
 
+        lastAttackTime = Time.time;
         currentState = EnemyState.Chasing;
     }
-
-
-    void Wait()
-    {
-        waitTimer -= Time.deltaTime;
-
-        if (animator != null)
-            animator.SetBool("isWalking", false);
-
-        if (waitTimer <= 0f)
-        {
-            animator.SetBool("IsAttacking", false); // reset attack animation
-            currentState = EnemyState.Chasing; // return to chasing after wait
-        }
-    }
-
 
     bool ShouldTurnAround()
     {
@@ -227,8 +211,6 @@ public class EnemyController : MonoBehaviour
 
         return hit.collider == null;
     }
-
-
 
     // Visual debugging
     void OnDrawGizmosSelected()
@@ -253,4 +235,31 @@ public class EnemyController : MonoBehaviour
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
     }
+
+    public void DealDamageToPlayer()
+    {
+        if (player == null) return;
+
+        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+        if (distanceToPlayer > attackRange) return;
+
+        PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+        PlayerController playerController = player.GetComponent<PlayerController>();
+
+        if (playerHealth != null && !playerHealth.IsInvincible())
+        {
+            if (playerController != null && playerController.IsBlocking)
+            {
+                Debug.Log("Attack was blocked!");
+                float knockbackForce = 2f;
+                Vector2 knockbackDir = (transform.position - player.position).normalized;
+                rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
+            }
+            else
+            {
+                playerHealth.TakeDamage(attackDamage, transform.position);
+            }
+        }
+    }
+
 }

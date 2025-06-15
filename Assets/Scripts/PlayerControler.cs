@@ -53,8 +53,8 @@ public class PlayerController : MonoBehaviour
 
         if (isBlocking)
         {
-            // Stop horizontal movement immediately when blocking
             rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+            return;
         }
 
 
@@ -199,11 +199,27 @@ public class PlayerController : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        // AutoWalk Trigger (for level end or similar)
         if (other.CompareTag("Player"))
         {
-            other.GetComponent<PlayerController>().TriggerAutoWalk();
+            PlayerController player = other.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                player.TriggerAutoWalk();
+            }
+        }
+
+        // Coin Collection Trigger
+        else if (other.CompareTag("Coin"))
+        {
+            Coin coin = other.GetComponent<Coin>();
+            if (coin != null)
+            {
+                coin.Collect();
+            }
         }
     }
+
 
 
     private IEnumerator Roll()

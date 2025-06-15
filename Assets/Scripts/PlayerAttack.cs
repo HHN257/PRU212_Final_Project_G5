@@ -13,6 +13,10 @@ public class PlayerAttack : MonoBehaviour
     private Animator animator;
     private bool isAttacking = false;
 
+    [Header("Drops")]
+    public GameObject coinPrefab;
+
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -41,19 +45,51 @@ public class PlayerAttack : MonoBehaviour
 
     void PerformAttack()
     {
-        // Get all enemies in attack range
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayerMask);
+        Collider2D[] hitTargets = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayerMask);
 
-        foreach (Collider2D enemy in hitEnemies)
+        foreach (Collider2D target in hitTargets)
         {
-            // Check if it's an enemy
-            EnemyHealth enemyHealth = enemy.GetComponent<EnemyHealth>();
+            // 1. Check for JumpBoost
+            JumpBoost jumpBoost = target.GetComponent<JumpBoost>();
+            if (jumpBoost != null)
+            {
+                jumpBoost.ActivateBoost(transform);
+                continue;
+            }
+
+            // 2. Check for EnemyHealth
+            EnemyHealth enemyHealth = target.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {
                 enemyHealth.TakeDamage(attackDamage, transform.position);
+                continue;
             }
+
+            // 3. Destroy breakable blocks
+            if (target.CompareTag("BreakableBlock"))
+            {
+                // Drop a coin after destroying the block
+                if (coinPrefab != null)
+                {
+                    Vector3 dropPos = target.transform.position + new Vector3(Random.Range(-0.3f, 0.3f), 0.5f, 0);
+                    int coinCount = 5; 
+
+                    for (int i = 0; i < coinCount; i++)
+                    {
+                        Vector3 dropOffset = new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(0.2f, 0.8f), 0);
+                        Instantiate(coinPrefab, target.transform.position + dropOffset, Quaternion.identity);
+                    }
+
+                }
+
+                Destroy(target.gameObject);
+                continue;
+            }
+
         }
     }
+
+
 
     // Alternative method if you don't want to use animation events
     public void TriggerAttack()
