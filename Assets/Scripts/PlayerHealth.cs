@@ -157,22 +157,7 @@ public class PlayerHealth : MonoBehaviour
     private IEnumerator TemporaryInvincibility(float duration)
     {
         isInvincible = true;
-
-        // Optional: flash effect while invincible
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.color = Color.clear;
-                yield return new WaitForSeconds(0.05f);
-                spriteRenderer.color = originalColor;
-                yield return new WaitForSeconds(0.05f);
-            }
-
-            elapsed += 0.1f;
-        }
-
+        yield return new WaitForSeconds(duration);
         isInvincible = false;
         if (spriteRenderer != null)
             spriteRenderer.color = originalColor;

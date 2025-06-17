@@ -2,12 +2,17 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public Transform target;            // Player to follow
-    public float followSpeed = 5f;      // Follow smoothness
-    public float zoomSpeed = 2f;        // Zoom smoothness
-    public float minZoom = 3f;          // Closest zoom
-    public float maxZoom = 6f;          // Farthest zoom
-    public float fixedYOffset = 4f;     // Fixed vertical offset
+    public float minY = 0f;
+    public float maxY = 5f;
+
+    public Transform target;
+    public float followSpeed = 5f;
+
+    public float zoomSpeed = 2f;
+    public float minZoom = 3f;
+    public float maxZoom = 6f;
+
+    public Vector2 offset = new Vector2(0f, 2f); // Optional offset from the player
 
     private Camera cam;
 
@@ -25,14 +30,18 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
-        // Smooth follow on X only
         if (target != null)
         {
-            Vector3 targetPos = new Vector3(target.position.x, fixedYOffset, -10f);
-            transform.position = Vector3.Lerp(transform.position, targetPos, followSpeed * Time.deltaTime);
+            float clampedY = Mathf.Clamp(target.position.y + offset.y, minY, maxY);
+            Vector3 desiredPosition = new Vector3(
+                target.position.x + offset.x,
+                clampedY,
+                -10f
+            );
+            transform.position = Vector3.Lerp(transform.position, desiredPosition, followSpeed * Time.deltaTime);
         }
 
-        // Zoom in/out with Z and X
+        // Zoom control
         if (Input.GetKey(KeyCode.Z))
         {
             cam.orthographicSize -= zoomSpeed * Time.deltaTime;
@@ -42,7 +51,6 @@ public class CameraController : MonoBehaviour
             cam.orthographicSize += zoomSpeed * Time.deltaTime;
         }
 
-        // Clamp zoom
         cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, maxZoom);
     }
 }

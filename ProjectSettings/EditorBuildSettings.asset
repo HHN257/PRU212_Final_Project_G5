@@ -6,11 +6,11 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Level1 - Ruin.unity
-    guid: 05a783d7de7a99d428b1dad2e874eb0f
+    path: Assets/Scenes/Level1 - GreenZone.unity
+    guid: e477e2a2b5ab01e4bb5419b2b9bdd14f
   - enabled: 1
-    path: Assets/Scenes/Level2.unity
-    guid: b35c9436296498f459dc056a1180bfa7
+    path: Assets/Scenes/Level2 - Ruin.unity
+    guid: 05a783d7de7a99d428b1dad2e874eb0f
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

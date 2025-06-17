@@ -1040,12 +1040,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02371e0cc7f99ed41991a38296021265, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  minY: 0
+  maxY: 5
   target: {fileID: 0}
   followSpeed: 5
   zoomSpeed: 2
   minZoom: 3
   maxZoom: 7
-  fixedYOffset: 5
+  offset: {x: 0, y: 2}
 --- !u!4 &515579140
 Transform:
   m_ObjectHideFlags: 0
@@ -1223,7 +1225,7 @@ MonoBehaviour:
   attackPoint: {fileID: 1750291310}
   isAutoWalking: 0
   autoWalkSpeed: 2
-  nextSceneName: Level2
+  nextSceneName: Level3- Dungeon
   moveSpeed: 5
   jumpForce: 7
   rollSpeed: 8
@@ -1497,8 +1499,8 @@ Transform:
   m_GameObject: {fileID: 602125097}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 70.2777, y: 0.834, z: 0}
-  m_LocalScale: {x: 18.540592, y: 11.982468, z: 1}
+  m_LocalPosition: {x: 70.2777, y: 0.752, z: 0}
+  m_LocalScale: {x: 18.540592, y: 12.146627, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1318456814}
@@ -2150,12 +2152,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02371e0cc7f99ed41991a38296021265, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  minY: 0
+  maxY: 5
   target: {fileID: 542967531}
   followSpeed: 5
   zoomSpeed: 2
   minZoom: 1
   maxZoom: 5
-  fixedYOffset: 4
+  offset: {x: 0, y: 2}
 --- !u!1001 &821206992
 PrefabInstance:
   m_ObjectHideFlags: 0

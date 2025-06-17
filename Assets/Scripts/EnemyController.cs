@@ -25,7 +25,7 @@ public class EnemyController : MonoBehaviour
     // Private variables
     private Vector2 startPosition;
     private bool movingRight = true;
-    private float waitTimer = 0f;
+    //private float waitTimer = 0f;
     //private bool isWaiting = false;
     private float lastAttackTime = 0f;
 

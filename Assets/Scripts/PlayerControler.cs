@@ -12,7 +12,7 @@ public class PlayerController : MonoBehaviour
 
     public bool isAutoWalking = false;
     public float autoWalkSpeed = 2f;
-    public string nextSceneName = "Level2"; // Set in Inspector or code
+    public string nextSceneName = "Level1 - GreenZone";
     private bool canMove = true;
     public bool IsBlocking => animator.GetBool("Block");
 
@@ -227,7 +227,7 @@ public class PlayerController : MonoBehaviour
         isRolling = true;
         animator.SetTrigger("Roll");
 
-        // 👉 Kích hoạt invincible trong PlayerHealth
+        //  Kích hoạt invincible trong PlayerHealth
         if (TryGetComponent<PlayerHealth>(out var health))
         {
             health.SetTemporaryInvincibility(rollDuration);

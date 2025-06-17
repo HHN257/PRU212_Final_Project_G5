@@ -69,7 +69,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 32
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -297,7 +297,14 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Mushroom-Idle_0: -654737500350741434
+      Mushroom-Idle_1: -7095357931098475539
+      Mushroom-Idle_2: 2163288782968092727
+      Mushroom-Idle_3: -4210055123308685074
+      Mushroom-Idle_4: -9004658040723243172
+      Mushroom-Idle_5: 920352064709726215
+      Mushroom-Idle_6: -8565668554048287875
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
