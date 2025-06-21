@@ -35,7 +35,7 @@ public class EnemyController : MonoBehaviour
     private Animator animator; // Optional, if you have animations
 
     // States
-    public enum EnemyState { Patrolling, Chasing, Attacking, ExecutingAttack }
+    public enum EnemyState { Patrolling, Attacking, ExecutingAttack }
     public EnemyState currentState = EnemyState.Patrolling;
 
     void Start()
@@ -65,28 +65,13 @@ public class EnemyController : MonoBehaviour
         switch (currentState)
         {
             case EnemyState.Patrolling:
-                if (distanceToPlayer <= detectionRange)
-                {
-                    currentState = EnemyState.Chasing;
-                }
-                else
-                {
-                    Patrol();
-                }
-                break;
-
-            case EnemyState.Chasing:
-                if (distanceToPlayer > detectionRange * 1.5f) // Add some buffer to prevent flickering
-                {
-                    currentState = EnemyState.Patrolling;
-                }
-                else if (distanceToPlayer <= attackRange && Time.time >= lastAttackTime + attackCooldown)
+                if (distanceToPlayer <= attackRange && Time.time >= lastAttackTime + attackCooldown)
                 {
                     currentState = EnemyState.Attacking;
                 }
                 else
                 {
-                    ChasePlayer();
+                    Patrol();
                 }
                 break;
 
@@ -95,20 +80,19 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.ExecutingAttack:
-                // Enemy is in the middle of an attack animation, do nothing or prevent movement.
+                // Stay still during attack animation
                 rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
                 break;
         }
 
-        // Update animator parameters based on your setup
+        // Animator updates
         if (animator != null)
         {
-            animator.SetBool("isWalking", rb.linearVelocity.x != 0 && (currentState == EnemyState.Patrolling || currentState == EnemyState.Chasing));
-            animator.SetBool("isHurt", false); // This will be controlled by EnemyHealth script
-            animator.SetBool("isDead", false); // This will be controlled by EnemyHealth script
+            animator.SetBool("isWalking", currentState == EnemyState.Patrolling && rb.linearVelocity.x != 0);
             animator.SetBool("IsAttacking", currentState == EnemyState.Attacking || currentState == EnemyState.ExecutingAttack);
         }
     }
+
 
     void Patrol()
     {
@@ -130,20 +114,20 @@ public class EnemyController : MonoBehaviour
             animator.SetBool("isWalking", true);
     }
 
-    void ChasePlayer()
-    {
-        Vector2 direction = (player.position - transform.position).normalized;
-        rb.linearVelocity = new Vector2(direction.x * attackSpeed, rb.linearVelocity.y);
+    //void ChasePlayer()
+    //{
+    //    Vector2 direction = (player.position - transform.position).normalized;
+    //    rb.linearVelocity = new Vector2(direction.x * attackSpeed, rb.linearVelocity.y);
 
-        // Flip sprite based on movement direction
-        //spriteRenderer.flipX = direction.x < 0;
+    //    // Flip sprite based on movement direction
+    //    //spriteRenderer.flipX = direction.x < 0;
 
-        // Set walking animation for chasing
-        if (animator != null)
-        {
-            animator.SetBool("isWalking", true);
-        }
-    }
+    //    // Set walking animation for chasing
+    //    if (animator != null)
+    //    {
+    //        animator.SetBool("isWalking", true);
+    //    }
+    //}
 
     void Attack()
     {
@@ -190,27 +174,24 @@ public class EnemyController : MonoBehaviour
             animator.SetBool("IsAttacking", false);
 
         lastAttackTime = Time.time;
-        currentState = EnemyState.Chasing;
+        currentState = EnemyState.Patrolling;
     }
 
     bool ShouldTurnAround()
     {
-        // Check patrol range
-        float distanceFromStart = Vector2.Distance(transform.position, startPosition);
+        // Check patrol boundary
+        float distanceFromStart = Mathf.Abs(transform.position.x - startPosition.x);
         if (distanceFromStart >= patrolDistance)
             return true;
 
-        // Cast ray ahead and down
+        // Only check for ground ahead when grounded
         Vector2 rayOrigin = groundCheck.position + new Vector3(movingRight ? 0.2f : -0.2f, 0f);
-        Vector2 rayDirection = Vector2.down;
-        float rayLength = 0.5f;
-
-        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, rayDirection, rayLength, groundLayerMask);
-
-        Debug.DrawRay(rayOrigin, rayDirection * rayLength, Color.magenta);
+        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.down, 0.5f, groundLayerMask);
+        Debug.DrawRay(rayOrigin, Vector2.down * 0.5f, Color.magenta);
 
         return hit.collider == null;
     }
+
 
     // Visual debugging
     void OnDrawGizmosSelected()

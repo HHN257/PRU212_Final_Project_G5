@@ -65,6 +65,14 @@ public class PlayerAttack : MonoBehaviour
                 continue;
             }
 
+            // Check for Boss
+            BossController boss = target.GetComponent<BossController>();
+            if (boss != null)
+            {
+                boss.TakeDamage(attackDamage);
+                continue;
+            }
+
             // 3. Destroy breakable blocks
             if (target.CompareTag("BreakableBlock"))
             {
@@ -72,7 +80,7 @@ public class PlayerAttack : MonoBehaviour
                 if (coinPrefab != null)
                 {
                     Vector3 dropPos = target.transform.position + new Vector3(Random.Range(-0.3f, 0.3f), 0.5f, 0);
-                    int coinCount = 5; 
+                    int coinCount = 5;
 
                     for (int i = 0; i < coinCount; i++)
                     {

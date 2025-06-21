@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Level2 - Ruin.unity
     guid: 05a783d7de7a99d428b1dad2e874eb0f
+  - enabled: 1
+    path: Assets/Scenes/Level3- Dungeon.unity
+    guid: 08cfca7059834df41ac78ebfc9788fbe
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 public class PlayerHealth : MonoBehaviour
 {
+
     [Header("Health Settings")]
     public int maxHealth = 3;
     public int currentHealth;
@@ -21,6 +22,7 @@ public class PlayerHealth : MonoBehaviour
     public float flashDuration = 0.1f;
 
     // Private variables
+    private Animator animator;
     private bool isInvincible = false;
     private float invincibilityTimer = 0f;
     private SpriteRenderer spriteRenderer;
@@ -30,6 +32,7 @@ public class PlayerHealth : MonoBehaviour
 
     void Start()
     {
+        animator = GetComponent<Animator>();
         currentHealth = maxHealth;
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
@@ -58,6 +61,14 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage, Vector2 enemyPosition)
     {
+        // Block check
+        if (playerController != null && playerController.IsBlocking)
+        {
+            // Optionally, play a block effect here
+            Debug.Log("Attack Blocked!");
+            return;
+        }
+
         if (isInvincible) return;
 
         currentHealth -= damage;
@@ -178,13 +189,28 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         Debug.Log("Player died!");
-        // Add your death logic here:
-        // - Restart level
-        // - Show game over screen
-        // - Play death animation
-        // - etc.
 
-        // Example: Restart the current scene
-        // UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        // Play death animation
+        if (animator != null)
+        {
+            animator.SetBool("noBlood", false); // Optional, depending on your setup
+            animator.SetTrigger("Death");       // This will trigger the Death transition
+        }
+
+        // Disable movement or other controls if needed
+        if (playerController != null)
+        {
+            playerController.enabled = false;
+        }
+
+        // Optionally restart the scene after a delay
+        StartCoroutine(RestartScene());
     }
+    IEnumerator RestartScene()
+    {
+        yield return new WaitForSeconds(2f); // Wait for animation to finish
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
 }
