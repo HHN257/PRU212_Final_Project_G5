@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class BossController : MonoBehaviour
 {
+    [Header("UI")]
+    public GameObject bossHealthBarContainer; // Assign the parent GameObject of the health bar (e.g., BossHP_Background)
+    public GameObject phaseTextGameObject; // Assign your Phase Text UI GameObject here
+    public BossHealthBar healthBar;
     private Animator animator;
     public Transform player;
     public GameObject bulletPrefab;
@@ -10,6 +14,7 @@ public class BossController : MonoBehaviour
 
     [Header("Boss Stats")]
     public float health = 100f;
+    public float maxHealth = 100f;
     public float moveSpeed = 2f;
     private int phase = 1;
     public float detectionRadius = 15f;
@@ -24,6 +29,11 @@ public class BossController : MonoBehaviour
     public Transform meleeAttackPoint;
     public LayerMask playerLayer;
 
+    [Header("Phase 3 Combo Settings")]
+    public float attack1Delay = 1.2f; // Adjust to match animation length
+    public float attack2Delay = 1.0f; // Adjust to match animation length
+    public float attack3Delay = 1.5f; // Adjust to match animation length
+
     [Header("Effects")]
     public Color damageColor = Color.red;
     public float flashDuration = 0.1f;
@@ -32,6 +42,8 @@ public class BossController : MonoBehaviour
     private float shootCooldown = 2f;
     private float attackTimer;
     private float shootTimer;
+
+    private bool isAttacking = false; // To control attack state
 
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
@@ -49,34 +61,64 @@ public class BossController : MonoBehaviour
         {
             player = GameObject.FindGameObjectWithTag("Player").transform;
         }
+
+        // Initially hide the health bar and phase text
+        if (bossHealthBarContainer != null)
+        {
+            bossHealthBarContainer.SetActive(false);
+        }
+        if (phaseTextGameObject != null)
+        {
+            phaseTextGameObject.SetActive(false);
+        }
+
+        // Initialize health bar
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(health, maxHealth);
+            healthBar.SetPhase(phase);
+            Debug.Log($"BossController: Health bar initialized with health={health}, maxHealth={maxHealth}, phase={phase}");
+        }
+        else
+        {
+            Debug.LogWarning("BossController: healthBar is null! Make sure to assign it in the inspector.");
+        }
+
+        // Set initial animator phase
+        animator.SetInteger("Phase", phase);
     }
 
     void Update()
     {
-        if (player == null || health <= 0)
+        if (player == null || health <= 0 || isAttacking)
         {
-            animator.SetBool("IsWalking", false);
-            animator.SetBool("IsRunning", false);
+            // If we are in an attack combo, halt all other logic
+            if (isAttacking)
+            {
+                animator.SetBool("IsWalking", false);
+                animator.SetBool("IsRunning", false);
+            }
             return;
         }
 
-        // Phase update
-        if (health <= 70 && phase == 1)
-        {
-            phase = 2;
-            animator.SetInteger("Phase", phase);
-        }
-        else if (health <= 30 && phase == 2)
-        {
-            phase = 3;
-            animator.SetInteger("Phase", phase);
-        }
+        // Phase update logic moved to TakeDamage method for better consistency
+        CheckPhaseTransition();
 
         float distance = Vector2.Distance(transform.position, player.position);
 
         // --- Main AI Logic: Only engage if player is within detection radius ---
         if (distance <= detectionRadius)
         {
+            // Show health bar and phase text when boss engages
+            if (bossHealthBarContainer != null && !bossHealthBarContainer.activeInHierarchy)
+            {
+                bossHealthBarContainer.SetActive(true);
+            }
+            if (phaseTextGameObject != null && !phaseTextGameObject.activeInHierarchy)
+            {
+                phaseTextGameObject.SetActive(true);
+            }
+
             Vector2 direction = (player.position - transform.position).normalized;
 
             // --- Flipping Logic ---
@@ -102,58 +144,33 @@ public class BossController : MonoBehaviour
                 }
             }
 
-            // --- Movement ---
+            // --- Timers ---
+            attackTimer += Time.deltaTime;
+            shootTimer += Time.deltaTime;
+
+            // --- Movement & Attack Logic ---
             if (phase == 1)
             {
+                // In Phase 1, the boss kites and shoots.
                 if (distance > idealShootingDistance)
                 {
-                    // Too far, move closer
                     transform.position += (Vector3)direction * moveSpeed * Time.deltaTime;
                     animator.SetBool("IsWalking", true);
                 }
                 else if (distance < kiteBackDistance)
                 {
-                    // Too close, move away
                     transform.position -= (Vector3)direction * moveSpeed * Time.deltaTime;
                     animator.SetBool("IsWalking", true);
                 }
                 else
                 {
-                    // Just right distance for shooting, so stop.
                     animator.SetBool("IsWalking", false);
                 }
                 animator.SetBool("IsRunning", false);
-            }
-            else // For Phases 2 and 3
-            {
-                // The boss will stop moving only when it's very close to the player.
-                float stopDistance = meleeAttackRange / 2f;
-                if (distance > stopDistance)
-                {
-                    transform.position += (Vector3)direction * moveSpeed * Time.deltaTime;
-                    animator.SetBool("IsWalking", true);
-                    animator.SetBool("IsRunning", phase >= 2);
-                }
-                else
-                {
-                    animator.SetBool("IsWalking", false);
-                    animator.SetBool("IsRunning", false);
-                }
-            }
 
-            // --- Timers ---
-            attackTimer += Time.deltaTime;
-            shootTimer += Time.deltaTime;
-
-
-            // --- Attack Logic ---
-            if (phase == 1)
-            {
-                // In Phase 1, the boss only shoots.
                 if (shootTimer >= shootCooldown)
                 {
                     shootTimer = 0;
-                    Debug.Log("Boss is attempting to shoot! (Phase 1)");
                     animator.SetTrigger("IsShooting");
                 }
             }
@@ -161,24 +178,38 @@ public class BossController : MonoBehaviour
             {
                 if (distance <= meleeAttackRange)
                 {
-                    // Player is in melee range, prioritize melee attacks.
+                    // --- Stop and Melee Attack ---
+                    animator.SetBool("IsWalking", false);
+                    animator.SetBool("IsRunning", false);
+
                     if (attackTimer >= attackCooldown)
                     {
                         attackTimer = 0;
-                        int attackType = Random.Range(1, phase + 1);
-                        switch (attackType)
+                        if (phase == 2)
                         {
-                            case 1: animator.SetTrigger("IsAttacking1"); break;
-                            case 2: if (phase >= 2) animator.SetTrigger("IsAttacking2"); break;
-                            case 3: if (phase >= 3) animator.SetTrigger("IsAttacking3"); break;
+                            // Phase 2: random between attack 1 and 2
+                            int attackType = Random.Range(1, 3); // Gets 1 or 2
+                            animator.SetTrigger("IsAttacking" + attackType);
+                        }
+                        else if (phase == 3)
+                        {
+                            // Phase 3: perform the 3-hit combo
+                            StartCoroutine(Phase3AttackCombo());
                         }
                     }
                 }
-                else if (shootTimer >= shootCooldown) // Player is outside melee range, use ranged attacks.
+                else
                 {
-                    shootTimer = 0;
-                    Debug.Log("Boss is attempting to shoot!");
-                    animator.SetTrigger("IsShooting");
+                    // --- Move and Shoot ---
+                    transform.position += (Vector3)direction * moveSpeed * Time.deltaTime;
+                    animator.SetBool("IsWalking", true);
+                    animator.SetBool("IsRunning", true); // Always run when moving in later phases
+
+                    if (shootTimer >= shootCooldown)
+                    {
+                        shootTimer = 0;
+                        animator.SetTrigger("IsShooting");
+                    }
                 }
             }
         }
@@ -188,25 +219,125 @@ public class BossController : MonoBehaviour
             animator.SetBool("IsWalking", false);
             animator.SetBool("IsRunning", false);
         }
+
+        if (health <= 0)
+        {
+            Die();
+        }
+    }
+
+    private void CheckPhaseTransition()
+    {
+        int newPhase = phase;
+
+        if (health <= 30 && phase < 3)
+        {
+            newPhase = 3;
+        }
+        else if (health <= 70 && phase < 2)
+        {
+            newPhase = 2;
+        }
+
+        if (newPhase != phase)
+        {
+            phase = newPhase;
+            animator.SetInteger("Phase", phase);
+
+            if (healthBar != null)
+            {
+                healthBar.SetPhase(phase);
+            }
+
+            // Phase transition effects
+            StartCoroutine(PhaseTransitionEffect());
+        }
+    }
+
+    private IEnumerator PhaseTransitionEffect()
+    {
+        // Flash effect for phase transition
+        if (spriteRenderer != null)
+        {
+            Color originalColor = spriteRenderer.color;
+            spriteRenderer.color = Color.white;
+            yield return new WaitForSeconds(0.2f);
+            spriteRenderer.color = originalColor;
+        }
+
+        // You can add more phase transition effects here
+        Debug.Log($"Boss entered Phase {phase}!");
+    }
+
+    IEnumerator Phase3AttackCombo()
+    {
+        isAttacking = true;
+
+        // Attack 1
+        animator.SetTrigger("IsAttacking1");
+        yield return new WaitForSeconds(attack1Delay);
+
+        // Attack 2
+        if (health > 0) // Check if boss is still alive
+        {
+            animator.SetTrigger("IsAttacking2");
+            yield return new WaitForSeconds(attack2Delay);
+        }
+
+        // Attack 3
+        if (health > 0) // Check if boss is still alive
+        {
+            animator.SetTrigger("IsAttacking3");
+            yield return new WaitForSeconds(attack3Delay);
+        }
+
+        isAttacking = false;
     }
 
     public void TakeDamage(float amount)
     {
         if (health <= 0) return;
 
+        float oldHealth = health;
         health -= amount;
 
+        Debug.Log($"Boss took {amount} damage: {oldHealth} -> {health}");
+
         if (spriteRenderer != null)
-        {
             StartCoroutine(FlashEffect());
+
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(health, maxHealth);
         }
+        else
+        {
+            Debug.LogWarning("BossController: healthBar is null in TakeDamage!");
+        }
+
+        // Phase transitions are now handled in CheckPhaseTransition()
+        CheckPhaseTransition();
 
         if (health <= 0)
         {
-            animator.SetTrigger("IsDead");
-            // Disable movement/collision
-            GetComponent<Collider2D>().enabled = false;
-            this.enabled = false;
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        animator.SetTrigger("IsDead");
+        GetComponent<Collider2D>().enabled = false;
+        this.enabled = false;
+
+        // Hide health bar and phase text on death
+        if (bossHealthBarContainer != null)
+        {
+            bossHealthBarContainer.SetActive(false);
+        }
+        if (phaseTextGameObject != null)
+        {
+            phaseTextGameObject.SetActive(false);
         }
     }
 
