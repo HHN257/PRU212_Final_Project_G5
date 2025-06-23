@@ -37,19 +37,71 @@ public class PlayerController : MonoBehaviour
 
     private int attackStage = 0; // 0: Attack1, 1: Attack2, 2: Attack3
 
+    [Header("Block Settings")]
+    public float maxBlockStamina = 100f;
+    public float blockStaminaDrainRate = 30f; // How fast stamina drains while blocking
+    public float blockStaminaRegenRate = 20f; // How fast stamina regenerates when not blocking
+    public float minBlockStaminaToBlock = 20f; // Minimum stamina required to start blocking
+    public GameObject blockBarContainer; // Reference to the block bar container
+    public PlayerBlockBar blockBar; // Reference to the PlayerBlockBar component
+
+    private float currentBlockStamina;
+    private bool isCurrentlyBlocking = false; // Track if we're already blocking
+
+    private bool isCheckingGround = false;
+    private float groundCheckEndTime = 0f;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         lastGroundedTime = Time.time;
+
+        // Initialize block stamina
+        currentBlockStamina = maxBlockStamina;
+
+        // Ensure block bar is properly initialized
+        if (blockBar != null && blockBarContainer != null)
+        {
+            blockBarContainer.SetActive(true);
+            blockBar.SetBlock(currentBlockStamina, maxBlockStamina);
+            blockBar.OnBlockDepleted += OnBlockDepleted; // Subscribe to the event
+            Debug.Log($"Block bar initialized with stamina: {currentBlockStamina}/{maxBlockStamina}");
+        }
+        else
+        {
+            Debug.LogWarning("Block bar or container not assigned in PlayerController!");
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Clean up event subscription
+        if (blockBar != null)
+        {
+            blockBar.OnBlockDepleted -= OnBlockDepleted;
+        }
+    }
+
+    private void OnBlockDepleted()
+    {
+        // Force stop blocking when stamina is depleted
+        animator.SetBool("Block", false);
+        Debug.Log("Block stamina depleted - forcing block to stop!");
     }
 
     private void Update()
     {
-        if (!isGrounded && Time.time - lastGroundedTime < groundCheckBuffer)
+        if (isCheckingGround && Time.time >= groundCheckEndTime)
         {
-            isGrounded = true;
+            isCheckingGround = false;
+            if (Time.time - lastGroundedTime >= groundCheckBuffer)
+            {
+                isGrounded = false;
+                isFalling = true;
+                animator.SetBool("Grounded", false);
+            }
         }
 
         if (isRolling) return;
@@ -87,8 +139,41 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        bool isBlocking = Input.GetKey(KeyCode.L);
+        // Handle blocking with stamina system
+        bool wantsToBlock = Input.GetKey(KeyCode.L);
+        bool canStartBlocking = currentBlockStamina >= minBlockStaminaToBlock; // Need 20+ stamina to START blocking
+        bool canContinueBlocking = currentBlockStamina > 0; // Can continue blocking until stamina hits 0
+
+        // Allow blocking if either:
+        // 1. We're not blocking and have enough stamina to start (20+)
+        // 2. We're already blocking and still have some stamina left
+        bool isBlocking = wantsToBlock && ((!isCurrentlyBlocking && canStartBlocking) || (isCurrentlyBlocking && canContinueBlocking));
+
+        // Update our blocking state
+        isCurrentlyBlocking = isBlocking;
         animator.SetBool("Block", isBlocking);
+
+        // Update block stamina
+        if (isBlocking)
+        {
+            currentBlockStamina = Mathf.Max(0f, currentBlockStamina - blockStaminaDrainRate * Time.deltaTime);
+            if (currentBlockStamina <= 0f)
+            {
+                // Force stop blocking when stamina is fully depleted
+                isCurrentlyBlocking = false;
+                animator.SetBool("Block", false);
+            }
+        }
+        else
+        {
+            currentBlockStamina = Mathf.Min(maxBlockStamina, currentBlockStamina + blockStaminaRegenRate * Time.deltaTime);
+        }
+
+        // Update block bar UI
+        if (blockBar != null)
+        {
+            blockBar.SetBlock(currentBlockStamina, maxBlockStamina);
+        }
 
         if (isRolling || !canMove) return; // Prevent all actions during roll
 
@@ -183,23 +268,14 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (!enabled) return;
+        if (!enabled || !gameObject.activeInHierarchy) return;
 
         if (collision.gameObject.CompareTag("Ground"))
         {
             lastGroundedTime = Time.time;
-            StartCoroutine(DelayedGroundCheck());
-        }
-    }
 
-    private IEnumerator DelayedGroundCheck()
-    {
-        yield return new WaitForSeconds(groundCheckBuffer);
-        if (Time.time - lastGroundedTime >= groundCheckBuffer)
-        {
-            isGrounded = false;
-            isFalling = true;
-            animator.SetBool("Grounded", false);
+            isCheckingGround = true;
+            groundCheckEndTime = Time.time + groundCheckBuffer;
         }
     }
 

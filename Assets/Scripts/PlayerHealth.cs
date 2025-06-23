@@ -1,21 +1,19 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerHealth : MonoBehaviour
 {
-
     [Header("Health Settings")]
-    public int maxHealth = 3;
+    public int maxHealth = 5;
     public int currentHealth;
 
     [Header("Damage Settings")]
-    public float invincibilityTime = 1f;
+    public float invincibilityDuration = 1f;
     public float knockbackForce = 5f;
 
     [Header("UI References")]
-    public Slider healthBar; // Optional health bar
-    public Text healthText;  // Optional health text
+    public GameObject healthBarContainer; // The parent object containing the health bar UI
+    public PlayerHealthBar healthBar;
 
     [Header("Effects")]
     public Color damageColor = Color.red;
@@ -29,6 +27,7 @@ public class PlayerHealth : MonoBehaviour
     private Color originalColor;
     private Rigidbody2D rb;
     private PlayerController playerController;
+    private bool isDead = false;
 
     void Start()
     {
@@ -41,7 +40,11 @@ public class PlayerHealth : MonoBehaviour
         if (spriteRenderer != null)
             originalColor = spriteRenderer.color;
 
-        UpdateHealthUI();
+        // Initialize health bar
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(currentHealth, maxHealth);
+        }
     }
 
     void Update()
@@ -59,39 +62,34 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    public void TakeDamage(int damage, Vector2 enemyPosition)
+    public void TakeDamage(int damage, Vector2 damageSource)
     {
-        // Block check
-        if (playerController != null && playerController.IsBlocking)
+        if (isInvincible || isDead) return;
+
+        currentHealth = Mathf.Max(0, currentHealth - damage);
+
+        if (healthBar != null)
         {
-            // Optionally, play a block effect here
-            Debug.Log("Attack Blocked!");
-            return;
+            healthBar.SetHealth(currentHealth, maxHealth);
         }
 
-        if (isInvincible) return;
-
-        currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-        // Start invincibility
-        isInvincible = true;
-        invincibilityTimer = invincibilityTime;
-
-        // Visual feedback
-        if (spriteRenderer != null)
-        {
-            StartCoroutine(FlashEffect());
-        }
-
-        // Knockback effect based on enemy position
-        ApplyKnockback(enemyPosition);
-
-        UpdateHealthUI();
+        // Apply knockback
+        Vector2 knockbackDirection = ((Vector2)transform.position - damageSource).normalized;
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
 
         if (currentHealth <= 0)
         {
             Die();
+        }
+        else
+        {
+            StartCoroutine(InvincibilityFrames());
+            // Trigger hit animation
+            if (animator != null)
+            {
+                animator.SetTrigger("Hit");
+            }
         }
     }
 
@@ -105,7 +103,12 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth += amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-        UpdateHealthUI();
+
+        // Update health bar
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(currentHealth, maxHealth);
+        }
     }
 
     void ApplyKnockback(Vector2 enemyPosition)
@@ -145,33 +148,39 @@ public class PlayerHealth : MonoBehaviour
         spriteRenderer.color = originalColor;
     }
 
-    void UpdateHealthUI()
-    {
-        if (healthBar != null)
-        {
-            healthBar.maxValue = maxHealth;
-            healthBar.value = currentHealth;
-        }
-
-        if (healthText != null)
-        {
-            healthText.text = $"Health: {currentHealth}/{maxHealth}";
-        }
-    }
-
     public void SetTemporaryInvincibility(float duration)
     {
-        StopCoroutine("TemporaryInvincibility");
-        StartCoroutine(TemporaryInvincibility(duration));
+        StartCoroutine(InvincibilityFrames(duration));
     }
 
-    private IEnumerator TemporaryInvincibility(float duration)
+    private IEnumerator InvincibilityFrames(float duration = -1)
     {
+        if (duration < 0) duration = invincibilityDuration;
+
         isInvincible = true;
-        yield return new WaitForSeconds(duration);
-        isInvincible = false;
+
+        // Optional: Flash effect
         if (spriteRenderer != null)
+        {
+            float flashInterval = 0.1f;
+            Color originalColor = spriteRenderer.color;
+
+            for (float t = 0; t < duration; t += flashInterval)
+            {
+                spriteRenderer.color = new Color(1f, 1f, 1f, 0.5f);
+                yield return new WaitForSeconds(flashInterval * 0.5f);
+                spriteRenderer.color = originalColor;
+                yield return new WaitForSeconds(flashInterval * 0.5f);
+            }
+
             spriteRenderer.color = originalColor;
+        }
+        else
+        {
+            yield return new WaitForSeconds(duration);
+        }
+
+        isInvincible = false;
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -180,37 +189,87 @@ public class PlayerHealth : MonoBehaviour
         {
             Debug.Log("Player touched a trap!");
             currentHealth = 0;
-            UpdateHealthUI();
+            if (healthBar != null)
+            {
+                healthBar.SetHealth(currentHealth, maxHealth);
+            }
             Die();
         }
     }
 
-
     void Die()
     {
+        if (isDead) return;
+        isDead = true;
+
+        // Handle coin loss through GameManager
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.HandlePlayerDeath(transform.position);
+        }
+
         Debug.Log("Player died!");
 
         // Play death animation
         if (animator != null)
         {
-            animator.SetBool("noBlood", false); // Optional, depending on your setup
-            animator.SetTrigger("Death");       // This will trigger the Death transition
+            animator.SetBool("noBlood", false);
+            animator.SetTrigger("Death");
         }
 
-        // Disable movement or other controls if needed
+        // Disable movement or other controls
         if (playerController != null)
         {
             playerController.enabled = false;
         }
 
-        // Optionally restart the scene after a delay
+        // Hide health bar
+        if (healthBarContainer != null)
+        {
+            healthBarContainer.SetActive(false);
+        }
+
+        // Restart scene after delay
         StartCoroutine(RestartScene());
     }
+
     IEnumerator RestartScene()
     {
-        yield return new WaitForSeconds(2f); // Wait for animation to finish
+        yield return new WaitForSeconds(2f);
         UnityEngine.SceneManagement.SceneManager.LoadScene(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 
+    private IEnumerator RespawnAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Respawn();
+    }
+
+    public void Respawn()
+    {
+        isDead = false;
+        currentHealth = maxHealth;
+
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(currentHealth, maxHealth);
+        }
+
+        // Re-enable components
+        if (TryGetComponent<PlayerController>(out var controller))
+        {
+            controller.enabled = true;
+        }
+        if (TryGetComponent<Collider2D>(out var collider))
+        {
+            collider.enabled = true;
+        }
+
+        // Reset animation
+        if (animator != null)
+        {
+            animator.SetTrigger("Respawn");
+        }
+    }
 }
