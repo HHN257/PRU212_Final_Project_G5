@@ -93,6 +93,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (DialogueManager.DialogueOpen) return;   // freeze all player input
+
         if (isCheckingGround && Time.time >= groundCheckEndTime)
         {
             isCheckingGround = false;
