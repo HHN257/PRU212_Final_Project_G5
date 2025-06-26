@@ -64,6 +64,12 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage, Vector2 damageSource)
     {
+        if (playerController != null && playerController.IsBlocking)
+        {
+            Debug.Log("Attack Blocked!");
+            return;
+        }
+
         if (isInvincible || isDead) return;
 
         currentHealth = Mathf.Max(0, currentHealth - damage);
@@ -73,10 +79,14 @@ public class PlayerHealth : MonoBehaviour
             healthBar.SetHealth(currentHealth, maxHealth);
         }
 
+        // Flash effect
+        if (spriteRenderer != null)
+        {
+            StartCoroutine(FlashEffect());
+        }
+
         // Apply knockback
-        Vector2 knockbackDirection = ((Vector2)transform.position - damageSource).normalized;
-        rb.linearVelocity = Vector2.zero;
-        rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+        ApplyKnockback(damageSource);
 
         if (currentHealth <= 0)
         {

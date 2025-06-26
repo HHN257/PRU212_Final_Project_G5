@@ -93,7 +93,13 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (DialogueManager.DialogueOpen) return;   // freeze all player input
+        if (DialogueManager.DialogueOpen)
+        {
+            // Stop sliding immediately
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);   // keep any upward fall speed
+            animator.SetInteger("AnimState", 0);            // Idle anim (optional)
+            return;                                         // skip the rest of Update
+        }
 
         if (isCheckingGround && Time.time >= groundCheckEndTime)
         {
@@ -239,6 +245,13 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (DialogueManager.DialogueOpen)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);   // make sure physics step is flat
+            return;
+        }
+
+
         if (jumpPressed && isGrounded)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
