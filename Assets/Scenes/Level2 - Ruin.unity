@@ -231,7 +231,7 @@ MonoBehaviour:
   patrolSpeed: 2
   waitTime: 1
   detectionRange: 2
-  attackRange: 2
+  attackRange: 1.5
   attackSpeed: 4
   attackCooldown: 1
   attackDamage: 3
@@ -2052,7 +2052,7 @@ MonoBehaviour:
   patrolSpeed: 2
   waitTime: 1
   detectionRange: 1
-  attackRange: 1.5
+  attackRange: 1.2
   attackSpeed: 4
   attackCooldown: 1
   attackDamage: 1
@@ -3337,7 +3337,7 @@ MonoBehaviour:
   patrolSpeed: 2
   waitTime: 1
   detectionRange: 1
-  attackRange: 1.5
+  attackRange: 1.2
   attackSpeed: 4
   attackCooldown: 1
   attackDamage: 1
@@ -4711,7 +4711,7 @@ MonoBehaviour:
   patrolSpeed: 2
   waitTime: 1
   detectionRange: 1
-  attackRange: 1.5
+  attackRange: 1.2
   attackSpeed: 4
   attackCooldown: 1
   attackDamage: 1
@@ -14302,7 +14302,7 @@ MonoBehaviour:
   patrolSpeed: 2
   waitTime: 1
   detectionRange: 1
-  attackRange: 1.5
+  attackRange: 1.2
   attackSpeed: 4
   attackCooldown: 1
   attackDamage: 1

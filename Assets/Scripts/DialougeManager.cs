@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class DialogueManager : MonoBehaviour
 {
+    [SerializeField] private int maxVisibleLines = 3;   // how many you want to keep
+    private readonly Queue<string> lineBuffer = new();  // rolling window
+
     [Header("UI References")]
     [SerializeField] private GameObject dialoguePanel;             // The background panel
     [SerializeField] private TextMeshProUGUI dialogueText;         // The text box inside
@@ -48,6 +52,8 @@ public class DialogueManager : MonoBehaviour
         dialogueActive = true;
         dialogueEnded = false;
 
+        lineBuffer.Clear();  // clear the buffer for a fresh start
+
         ShowNextLine();
     }
 
@@ -55,22 +61,24 @@ public class DialogueManager : MonoBehaviour
     {
         if (index < lines.Length)
         {
-            // Append line, add newline if needed
-            if (!string.IsNullOrEmpty(dialogueText.text))
-                dialogueText.text += "\n";
+            /* --- NEW: maintain a rolling buffer --- */
+            lineBuffer.Enqueue(lines[index]);           // add newest line
+            if (lineBuffer.Count > maxVisibleLines)     // too many? dump oldest
+                lineBuffer.Dequeue();
 
-            dialogueText.text += lines[index];
+            dialogueText.text = string.Join("\n", lineBuffer);
             index++;
 
-            // Auto-scroll to bottom
+            /* keep the auto-scroll if you still have a ScrollRect */
             Canvas.ForceUpdateCanvases();
-            scrollRect.verticalNormalizedPosition = 0f; // 0 = bottom
+            scrollRect.verticalNormalizedPosition = 0f;
         }
         else
         {
             EndDialogue();
         }
     }
+
 
     private void EndDialogue()
     {
