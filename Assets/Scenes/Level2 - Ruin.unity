@@ -1464,6 +1464,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3669392579221952887, guid: 7065524a1a0257c4a88d2dbc805c6d8f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1750291310}
+    - targetCorrespondingSourceObject: {fileID: 3669392579221952887, guid: 7065524a1a0257c4a88d2dbc805c6d8f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 857798001}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1380249035599186143, guid: 7065524a1a0257c4a88d2dbc805c6d8f, type: 3}
       insertIndex: -1
@@ -1505,12 +1508,17 @@ MonoBehaviour:
   rollSpeed: 8
   rollDuration: 0.3
   isInvincible: 0
-  maxBlockStamina: 100
-  blockStaminaDrainRate: 30
+  maxBlockStamina: 50
+  blockStaminaDrainRate: 20
   blockStaminaRegenRate: 20
   minBlockStaminaToBlock: 30
   blockBarContainer: {fileID: 2110173407}
   blockBar: {fileID: 2110173409}
+  skillShotPrefab: {fileID: 8305697527718239691, guid: 1d9bf87fc1027e54eb45bcfa90d0ba68, type: 3}
+  skillShotSpawnPoint: {fileID: 857798001}
+  skillShotSpeed: 8
+  skillShotCooldown: 1
+  attackCooldown: 0.3
 --- !u!4 &542967531 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3669392579221952887, guid: 7065524a1a0257c4a88d2dbc805c6d8f, type: 3}
@@ -2607,6 +2615,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5722896}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &857798000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 857798001}
+  m_Layer: 0
+  m_Name: SkillShotPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &857798001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857798000}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.019, y: 0.67, z: 0}
+  m_LocalScale: {x: 0.93554986, y: 0.9412521, z: 0.4787208}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 542967531}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &871766185
 PrefabInstance:

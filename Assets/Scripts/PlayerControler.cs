@@ -1,4 +1,4 @@
-using System.Collections; // Add this for Coroutine support
+﻿using System.Collections; // Add this for Coroutine support
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -50,6 +50,15 @@ public class PlayerController : MonoBehaviour
 
     private bool isCheckingGround = false;
     private float groundCheckEndTime = 0f;
+
+    [SerializeField] private GameObject skillShotPrefab;
+    [SerializeField] private Transform skillShotSpawnPoint;
+    public float skillShotSpeed = 8f;
+    public float skillShotCooldown = 1.5f;
+    private float lastSkillShotTime = -999f;
+
+    public float attackCooldown = 0.5f; // Time in seconds between attacks
+    private float lastAttackTime = -999f;
 
     private void Start()
     {
@@ -210,6 +219,14 @@ public class PlayerController : MonoBehaviour
                 attackPos.x = Mathf.Abs(attackPos.x) * (facingLeft ? -1 : 1);
                 attackPoint.localPosition = attackPos;
             }
+
+            // Flip skillShotSpawnPoint
+            if (skillShotSpawnPoint != null)
+            {
+                Vector3 skillShotPos = skillShotSpawnPoint.localPosition;
+                skillShotPos.x = Mathf.Abs(skillShotPos.x) * (facingLeft ? -1 : 1);
+                skillShotSpawnPoint.localPosition = skillShotPos;
+            }
         }
 
         // ---- Jump Input ----
@@ -219,7 +236,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // ---- Attack Input ----
-        if (Input.GetKeyDown(KeyCode.J))
+        if (Input.GetKeyDown(KeyCode.J) && Time.time - lastAttackTime > attackCooldown)
         {
             switch (attackStage)
             {
@@ -234,12 +251,21 @@ public class PlayerController : MonoBehaviour
                     break;
             }
             attackStage = (attackStage + 1) % 3; // Loop back to 0 after 2
+            lastAttackTime = Time.time;
         }
 
         // ---- Roll Input ----
         if (Input.GetKeyDown(KeyCode.K) && !isRolling)
         {
             StartCoroutine(Roll());
+        }
+
+        // ---- Skill Shot Input ----
+        if (Input.GetKeyDown(KeyCode.U) && Time.time - lastSkillShotTime > skillShotCooldown && !isRolling && !isBlocking)
+        {
+            animator.SetTrigger("Attack1");
+            FireSkillShot();
+            lastSkillShotTime = Time.time;
         }
     }
 
@@ -349,5 +375,30 @@ public class PlayerController : MonoBehaviour
         }
 
         isRolling = false;
+    }
+
+    private void FireSkillShot()
+    {
+        if (skillShotPrefab == null || skillShotSpawnPoint == null) return;
+
+        // Instantiate the projectile
+        GameObject projectile = Instantiate(skillShotPrefab, skillShotSpawnPoint.position, Quaternion.identity);
+
+        // Set direction based on player facing
+        float direction = spriteRenderer.flipX ? -1f : 1f;
+
+        // Set velocity (assuming the projectile has a Rigidbody2D)
+        Rigidbody2D projRb = projectile.GetComponent<Rigidbody2D>();
+        if (projRb != null)
+        {
+            projRb.linearVelocity = new Vector2(direction * skillShotSpeed, 0f);
+        }
+
+        // Flip the projectile sprite if needed
+        SpriteRenderer projSr = projectile.GetComponent<SpriteRenderer>();
+        if (projSr != null)
+        {
+            projSr.flipX = spriteRenderer.flipX;
+        }
     }
 }
