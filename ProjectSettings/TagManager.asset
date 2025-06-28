@@ -11,6 +11,7 @@ TagManager:
   - BreakableBlock
   - CoinText
   - CoinPhysics
+  - Boss
   layers:
   - Default
   - TransparentFX
