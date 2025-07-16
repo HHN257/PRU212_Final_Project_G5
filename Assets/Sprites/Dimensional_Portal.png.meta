@@ -1,19 +1,25 @@
 fileFormatVersion: 2
-guid: 39545a2e0485cd94c95854896a9c5dbc
+guid: 15a782499359fbf43a43030b9bd6178a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2633832405721466354
-    second: Monster Table_0
+      213: -1160010366554915182
+    second: Dimensional_Portal_0
   - first:
-      213: 3675996350072902318
-    second: Monster Table_1
+      213: 5853386924358050850
+    second: Dimensional_Portal_1
   - first:
-      213: 570879516954571105
-    second: Monster Table_2
+      213: 4392103141360296039
+    second: Dimensional_Portal_2
   - first:
-      213: -821590599531044510
-    second: Monster Table_3
+      213: -1678251164886203106
+    second: Dimensional_Portal_3
+  - first:
+      213: 378231322344738570
+    second: Dimensional_Portal_4
+  - first:
+      213: -4773631299378667110
+    second: Dimensional_Portal_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -122,13 +128,35 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Monster Table_0
+      name: Dimensional_Portal_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 8
+        y: 32
+        width: 18
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29e39b5b7b0d6efe0800000000000000
+      internalID: -1160010366554915182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dimensional_Portal_1
+      rect:
+        serializedVersion: 2
+        x: 8
         y: 0
-        width: 1024
-        height: 1024
+        width: 19
+        height: 32
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -137,20 +165,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2f5c0fc4e904d8420800000000000000
-      internalID: 2633832405721466354
+      spriteID: 224274725686b3150800000000000000
+      internalID: 5853386924358050850
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster Table_1
+      name: Dimensional_Portal_2
       rect:
         serializedVersion: 2
-        x: 339
-        y: 967
-        width: 7
-        height: 7
+        x: 39
+        y: 32
+        width: 17
+        height: 32
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -159,20 +187,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ea25ab14433c30330800000000000000
-      internalID: 3675996350072902318
+      spriteID: 76068a56982e3fc30800000000000000
+      internalID: 4392103141360296039
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster Table_2
+      name: Dimensional_Portal_3
       rect:
         serializedVersion: 2
-        x: 655
-        y: 152
-        width: 8
-        height: 8
+        x: 40
+        y: 0
+        width: 19
+        height: 32
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -181,20 +209,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 161bf9165eb2ce700800000000000000
-      internalID: 570879516954571105
+      spriteID: e1582111577a5b8e0800000000000000
+      internalID: -1678251164886203106
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster Table_3
+      name: Dimensional_Portal_4
       rect:
         serializedVersion: 2
-        x: 682
-        y: 151
-        width: 9
-        height: 10
+        x: 71
+        y: 32
+        width: 19
+        height: 32
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -203,8 +231,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 261e624e3bf1994f0800000000000000
-      internalID: -821590599531044510
+      spriteID: a0fc84b326fbf3500800000000000000
+      internalID: 378231322344738570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dimensional_Portal_5
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 0
+        width: 19
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9129dfff97a0cdb0800000000000000
+      internalID: -4773631299378667110
       vertices: []
       indices: 
       edges: []
@@ -222,11 +272,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      Monster Table_0: 2633832405721466354
-      Monster Table_1: 3675996350072902318
-      Monster Table_2: 570879516954571105
-      Monster Table_3: -821590599531044510
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
