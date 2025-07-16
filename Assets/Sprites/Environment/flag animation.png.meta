@@ -247,7 +247,12 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      flag animation_0: -6494656711642010645
+      flag animation_1: -4341209307699571989
+      flag animation_2: 4625237377173308275
+      flag animation_3: -455622095734552585
+      flag animation_4: 6712714840332784938
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

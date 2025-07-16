@@ -272,7 +272,13 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Wind Projectile_0: 3922947334420469022
+      Wind Projectile_1: 7815942008280344566
+      Wind Projectile_2: 8283415478252822504
+      Wind Projectile_3: 199648027558637222
+      Wind Projectile_4: -3820610122884018697
+      Wind Projectile_5: 5888282493799030969
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

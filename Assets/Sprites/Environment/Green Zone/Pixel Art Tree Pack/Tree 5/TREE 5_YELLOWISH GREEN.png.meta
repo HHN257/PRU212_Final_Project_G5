@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      TREE 5_YELLOWISH GREEN_0: -237546315291167804
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
