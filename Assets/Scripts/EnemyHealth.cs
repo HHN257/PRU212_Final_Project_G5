@@ -23,6 +23,10 @@ public class EnemyHealth : MonoBehaviour
     private bool isStunned = false;
     private float stunTimer = 0f;
 
+    public AudioSource audioSource;
+    public AudioClip skeletonHitClip; // Âm thanh khi đánh trúng skeleton
+    public AudioClip skeletonDieClip; // Âm thanh khi giết skeleton
+
     void Start()
     {
         currentHealth = maxHealth;
@@ -85,6 +89,10 @@ public class EnemyHealth : MonoBehaviour
         {
             Die();
         }
+
+        // Phát âm thanh khi đánh trúng skeleton
+        if (audioSource != null && skeletonHitClip != null)
+            audioSource.PlayOneShot(skeletonHitClip);
     }
 
     void ResetHurtAnimation()
@@ -150,6 +158,10 @@ public class EnemyHealth : MonoBehaviour
             enemyController.enabled = false;
 
         Destroy(gameObject, 1f);
+
+        // Phát âm thanh khi giết skeleton
+        if (audioSource != null && skeletonDieClip != null)
+            audioSource.PlayOneShot(skeletonDieClip);
     }
 
     [SerializeField] private GameObject coinPrefab;

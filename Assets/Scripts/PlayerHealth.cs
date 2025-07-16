@@ -19,6 +19,10 @@ public class PlayerHealth : MonoBehaviour
     public Color damageColor = Color.red;
     public float flashDuration = 0.1f;
 
+    public AudioSource audioSource;
+    public AudioClip dieClip; // Âm thanh khi die
+    public AudioClip hitClip; // Âm thanh khi bị trúng đòn
+
     // Private variables
     private Animator animator;
     private bool isInvincible = false;
@@ -88,6 +92,12 @@ public class PlayerHealth : MonoBehaviour
         if (spriteRenderer != null)
         {
             StartCoroutine(FlashEffect());
+        }
+
+        // Phát âm thanh bị trúng đòn (nếu chưa chết)
+        if (audioSource != null && hitClip != null && currentHealth > 0)
+        {
+            audioSource.PlayOneShot(hitClip);
         }
 
         // Apply knockback
@@ -216,6 +226,10 @@ public class PlayerHealth : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+
+        // Phát âm thanh die
+        if (audioSource != null && dieClip != null)
+            audioSource.PlayOneShot(dieClip);
 
         // Handle coin loss through GameManager
         if (GameManager.Instance != null)

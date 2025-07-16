@@ -16,6 +16,9 @@ public class PlayerAttack : MonoBehaviour
     [Header("Drops")]
     public GameObject coinPrefab;
 
+    public AudioSource audioSource;
+    public AudioClip chestClip; // Âm thanh khi phá rương
+
 
     void Start()
     {
@@ -89,6 +92,9 @@ public class PlayerAttack : MonoBehaviour
                     }
 
                 }
+                // Phát âm thanh phá rương
+                if (audioSource != null && chestClip != null)
+                    audioSource.PlayOneShot(chestClip, 0.5f);
 
                 Destroy(target.gameObject);
                 continue;

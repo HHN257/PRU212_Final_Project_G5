@@ -38,6 +38,23 @@ public class BossController : MonoBehaviour
     public Color damageColor = Color.red;
     public float flashDuration = 0.1f;
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip shootClip; // Âm thanh bắn cung của boss
+    public AudioClip walkClip; // Âm thanh boss di chuyển
+    private bool isWalkingSoundPlaying = false;
+    public AudioClip slashClip; // Âm thanh chém của boss (không dùng nữa)
+    public AudioClip slashHitClip; // Âm thanh chém trúng player
+    public AudioClip slashMissClip; // Âm thanh chém hụt
+    public AudioClip phaseChangeClip; // Âm thanh khi boss đổi phase máu
+    public AudioClip bossDieClip; // Âm thanh khi boss chết
+
+    [Header("Damage Text Effect")]
+    public GameObject textEffectPrefab; // Prefab hiệu ứng text (TextMeshPro)
+    public Color damageTextColor = Color.red;
+    public float damageTextYOffset = 2f;
+    public float damageTextDuration = 1.2f;
+
     private float attackCooldown = 2f;
     private float shootCooldown = 2f;
     private float attackTimer;
@@ -92,6 +109,8 @@ public class BossController : MonoBehaviour
     {
         if (player == null || health <= 0 || isAttacking)
         {
+            // Nếu boss dừng lại, tắt tiếng bước chân
+            StopWalkSound();
             // If we are in an attack combo, halt all other logic
             if (isAttacking)
             {
@@ -156,15 +175,18 @@ public class BossController : MonoBehaviour
                 {
                     transform.position += (Vector3)direction * moveSpeed * Time.deltaTime;
                     animator.SetBool("IsWalking", true);
+                    PlayWalkSound();
                 }
                 else if (distance < kiteBackDistance)
                 {
                     transform.position -= (Vector3)direction * moveSpeed * Time.deltaTime;
                     animator.SetBool("IsWalking", true);
+                    PlayWalkSound();
                 }
                 else
                 {
                     animator.SetBool("IsWalking", false);
+                    StopWalkSound();
                 }
                 animator.SetBool("IsRunning", false);
 
@@ -181,6 +203,7 @@ public class BossController : MonoBehaviour
                     // --- Stop and Melee Attack ---
                     animator.SetBool("IsWalking", false);
                     animator.SetBool("IsRunning", false);
+                    StopWalkSound();
 
                     if (attackTimer >= attackCooldown)
                     {
@@ -204,6 +227,7 @@ public class BossController : MonoBehaviour
                     transform.position += (Vector3)direction * moveSpeed * Time.deltaTime;
                     animator.SetBool("IsWalking", true);
                     animator.SetBool("IsRunning", true); // Always run when moving in later phases
+                    PlayWalkSound();
 
                     if (shootTimer >= shootCooldown)
                     {
@@ -218,6 +242,7 @@ public class BossController : MonoBehaviour
             // --- Player is out of range, idle ---
             animator.SetBool("IsWalking", false);
             animator.SetBool("IsRunning", false);
+            StopWalkSound();
         }
 
         if (health <= 0)
@@ -256,6 +281,9 @@ public class BossController : MonoBehaviour
 
     private IEnumerator PhaseTransitionEffect()
     {
+        // Phát âm thanh đổi phase máu
+        if (audioSource != null && phaseChangeClip != null)
+            audioSource.PlayOneShot(phaseChangeClip);
         // Flash effect for phase transition
         if (spriteRenderer != null)
         {
@@ -303,6 +331,20 @@ public class BossController : MonoBehaviour
 
         Debug.Log($"Boss took {amount} damage: {oldHealth} -> {health}");
 
+        // Spawn hiệu ứng text bay lên
+        if (textEffectPrefab != null)
+        {
+            Vector3 textPos = transform.position + Vector3.up * damageTextYOffset;
+            GameObject textObj = Instantiate(textEffectPrefab, textPos, Quaternion.identity);
+            var textMesh = textObj.GetComponent<TMPro.TextMeshPro>();
+            if (textMesh != null)
+            {
+                textMesh.text = $"-{amount}";
+                textMesh.color = damageTextColor;
+            }
+            StartCoroutine(AnimateDamageText(textObj));
+        }
+
         if (spriteRenderer != null)
             StartCoroutine(FlashEffect());
 
@@ -326,24 +368,34 @@ public class BossController : MonoBehaviour
 
     void Die()
     {
+        // Phát âm thanh boss chết
+        if (audioSource != null && bossDieClip != null)
+            audioSource.PlayOneShot(bossDieClip);
         animator.SetTrigger("IsDead");
         GetComponent<Collider2D>().enabled = false;
-        this.enabled = false;
+        StartCoroutine(DisableBossAfterDieSound());
+        // Không gọi this.enabled = false và các lệnh khác ở đây nữa
+        // ... các lệnh khác (ẩn health bar, phase text) sẽ chuyển vào coroutine
+    }
 
+    private System.Collections.IEnumerator DisableBossAfterDieSound()
+    {
+        float delay = bossDieClip != null ? bossDieClip.length : 1.5f;
+        yield return new WaitForSeconds(delay);
+        this.enabled = false;
         // Hide health bar and phase text on death
         if (bossHealthBarContainer != null)
-        {
             bossHealthBarContainer.SetActive(false);
-        }
         if (phaseTextGameObject != null)
-        {
             phaseTextGameObject.SetActive(false);
-        }
     }
 
     // Called from Animation Event
     public void FireProjectile()
     {
+        // Phát âm thanh bắn cung
+        if (audioSource != null && shootClip != null)
+            audioSource.PlayOneShot(shootClip);
         Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
     }
 
@@ -358,14 +410,26 @@ public class BossController : MonoBehaviour
     public void DealMeleeDamage()
     {
         Collider2D[] hitPlayers = Physics2D.OverlapCircleAll(meleeAttackPoint.position, meleeAttackRange, playerLayer);
-
+        bool hitSomeone = false;
         foreach (Collider2D playerCollider in hitPlayers)
         {
             PlayerHealth playerHealth = playerCollider.GetComponent<PlayerHealth>();
             if (playerHealth != null && !playerHealth.IsInvincible())
             {
+                hitSomeone = true;
+                // Phát âm thanh hit khi boss đánh trúng player
+                if (playerHealth.audioSource != null && playerHealth.hitClip != null)
+                    playerHealth.audioSource.PlayOneShot(playerHealth.hitClip);
                 playerHealth.TakeDamage(meleeAttackDamage, transform.position);
             }
+        }
+        // Phát âm thanh chém phù hợp
+        if (audioSource != null)
+        {
+            if (hitSomeone && slashHitClip != null)
+                audioSource.PlayOneShot(slashHitClip);
+            else if (!hitSomeone && slashMissClip != null)
+                audioSource.PlayOneShot(slashMissClip);
         }
     }
 
@@ -389,5 +453,52 @@ public class BossController : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(firePoint.position, 0.3f);
         }
+    }
+
+    // Hàm phát tiếng bước chân boss
+    private void PlayWalkSound()
+    {
+        if (audioSource != null && walkClip != null && !isWalkingSoundPlaying)
+        {
+            audioSource.clip = walkClip;
+            audioSource.loop = true;
+            audioSource.Play();
+            isWalkingSoundPlaying = true;
+        }
+    }
+
+    // Hàm dừng tiếng bước chân boss
+    private void StopWalkSound()
+    {
+        if (audioSource != null && isWalkingSoundPlaying)
+        {
+            audioSource.Stop();
+            audioSource.clip = null;
+            audioSource.loop = false;
+            isWalkingSoundPlaying = false;
+        }
+    }
+
+    // Hiệu ứng text bay lên và mờ dần
+    private System.Collections.IEnumerator AnimateDamageText(GameObject textObj)
+    {
+        Vector3 startPos = textObj.transform.position;
+        Vector3 endPos = startPos + Vector3.up * 1.5f;
+        float elapsed = 0f;
+        while (elapsed < damageTextDuration)
+        {
+            float t = elapsed / damageTextDuration;
+            textObj.transform.position = Vector3.Lerp(startPos, endPos, t);
+            var textMesh = textObj.GetComponent<TMPro.TextMeshPro>();
+            if (textMesh != null)
+            {
+                var color = textMesh.color;
+                color.a = 1f - t;
+                textMesh.color = color;
+            }
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        Destroy(textObj);
     }
 }

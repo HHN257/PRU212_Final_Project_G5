@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class EnemyController : MonoBehaviour
 {
@@ -28,6 +29,10 @@ public class EnemyController : MonoBehaviour
     //private float waitTimer = 0f;
     //private bool isWaiting = false;
     private float lastAttackTime = 0f;
+
+    // Thời gian delay giữa các lần phát âm thanh block cho mỗi player
+    private static Dictionary<GameObject, float> lastBlockSoundTime = new Dictionary<GameObject, float>();
+    private const float blockSoundDelay = 2f;
 
     // Components
     private Rigidbody2D rb;
@@ -145,27 +150,13 @@ public class EnemyController : MonoBehaviour
             PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             PlayerController playerController = player.GetComponent<PlayerController>();
 
-            //if (playerHealth != null && !playerHealth.IsInvincible())
-            //{
-            //    if (playerController != null && playerController.IsBlocking)
-            //    {
-            //        Debug.Log("Attack was blocked!");
-
-            //        // Apply knockback to enemy
-            //        float knockbackForce = 2f;
-            //        Vector2 knockbackDir = (transform.position - player.position).normalized;
-            //        rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
-            //    }
-            //    else
-            //    {
-            //        playerHealth.TakeDamage(attackDamage, transform.position);
-            //    }
-            //}
+            if (playerHealth != null && !playerHealth.IsInvincible())
+            {
+                // Instead of immediately changing state or setting cooldown here,
+                // we transition to a state where the animation plays out.
+                currentState = EnemyState.ExecutingAttack;
+            }
         }
-
-        // Instead of immediately changing state or setting cooldown here,
-        // we transition to a state where the animation plays out.
-        currentState = EnemyState.ExecutingAttack;
     }
 
     void ResetAttackAnimation()
@@ -232,6 +223,18 @@ public class EnemyController : MonoBehaviour
             if (playerController != null && playerController.IsBlocking)
             {
                 Debug.Log("Attack was blocked!");
+                // Phát âm thanh block khiên với delay 2 giây
+                float now = Time.time;
+                float lastTime = 0f;
+                lastBlockSoundTime.TryGetValue(player.gameObject, out lastTime);
+                if (now - lastTime >= blockSoundDelay)
+                {
+                    if (playerController.audioSource != null && playerController.blockClip != null)
+                    {
+                        playerController.audioSource.PlayOneShot(playerController.blockClip);
+                    }
+                    lastBlockSoundTime[player.gameObject] = now;
+                }
                 float knockbackForce = 2f;
                 Vector2 knockbackDir = (transform.position - player.position).normalized;
                 rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
