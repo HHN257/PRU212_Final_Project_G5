@@ -247,7 +247,12 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Wind Hit Effect_0: -6332939809186309373
+      Wind Hit Effect_1: -1780530402258229259
+      Wind Hit Effect_2: -8128283118744106991
+      Wind Hit Effect_3: 5869185045024866341
+      Wind Hit Effect_4: -4486905356413463646
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
