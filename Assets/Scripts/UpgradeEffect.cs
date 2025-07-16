@@ -7,18 +7,18 @@ public class UpgradeEffect : MonoBehaviour
     public GameObject upgradeEffectPrefab;
     public Transform effectSpawnPoint;
     public float effectDuration = 2f;
-    
+
     [Header("Text Effect")]
     public GameObject textEffectPrefab;
     public string healthUpgradeText = "+1 HP";
     public string attackUpgradeText = "+1 ATK";
     public Color healthTextColor = Color.green;
     public Color attackTextColor = Color.red;
-    
+
     [Header("Sound")]
     public AudioClip upgradeSound;
     public AudioSource audioSource;
-    
+
     void Start()
     {
         if (audioSource == null)
@@ -26,17 +26,17 @@ public class UpgradeEffect : MonoBehaviour
             audioSource = GetComponent<AudioSource>();
         }
     }
-    
+
     public void PlayHealthUpgradeEffect()
     {
         PlayUpgradeEffect(healthUpgradeText, healthTextColor);
     }
-    
+
     public void PlayAttackUpgradeEffect()
     {
         PlayUpgradeEffect(attackUpgradeText, attackTextColor);
     }
-    
+
     void PlayUpgradeEffect(string text, Color color)
     {
         // Spawn particle effect
@@ -46,44 +46,51 @@ public class UpgradeEffect : MonoBehaviour
             GameObject effect = Instantiate(upgradeEffectPrefab, spawnPos, Quaternion.identity);
             Destroy(effect, effectDuration);
         }
-        
+
         // Spawn text effect
         if (textEffectPrefab != null)
         {
             Vector3 textPos = effectSpawnPoint != null ? effectSpawnPoint.position : transform.position;
             textPos += Vector3.up * 2f; // Offset above the player
-            
+
             GameObject textObj = Instantiate(textEffectPrefab, textPos, Quaternion.identity);
             TextMeshPro textMesh = textObj.GetComponent<TextMeshPro>();
-            
+
             if (textMesh != null)
             {
                 textMesh.text = text;
                 textMesh.color = color;
             }
-            
+
             // Animate the text
             StartCoroutine(AnimateText(textObj));
         }
-        
+
         // Play sound
         if (audioSource != null && upgradeSound != null)
         {
             audioSource.PlayOneShot(upgradeSound);
         }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.healthUpgrades += 1;
+            // or
+            GameManager.Instance.attackUpgrades += 1;
+        }
     }
-    
+
     System.Collections.IEnumerator AnimateText(GameObject textObj)
     {
         Vector3 startPos = textObj.transform.position;
         Vector3 endPos = startPos + Vector3.up * 3f;
         float elapsed = 0f;
-        
+
         while (elapsed < effectDuration)
         {
             float t = elapsed / effectDuration;
             textObj.transform.position = Vector3.Lerp(startPos, endPos, t);
-            
+
             // Fade out
             TextMeshPro textMesh = textObj.GetComponent<TextMeshPro>();
             if (textMesh != null)
@@ -92,11 +99,11 @@ public class UpgradeEffect : MonoBehaviour
                 color.a = 1f - t;
                 textMesh.color = color;
             }
-            
+
             elapsed += Time.deltaTime;
             yield return null;
         }
-        
+
         Destroy(textObj);
     }
-} 
+}
