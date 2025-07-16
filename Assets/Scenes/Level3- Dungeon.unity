@@ -1122,7 +1122,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   promptPanel: {fileID: 186040091}
   promptText: {fileID: 997283038}
-  promptMessage: Press E to open Shop
+  promptMessage: Press E To Use Altar
   fadeInSpeed: 2
   fadeOutSpeed: 3
 --- !u!114 &186040094
@@ -23058,8 +23058,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 55, y: 181}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: -0.000013351, y: 190}
+  m_SizeDelta: {x: 148.2715, y: 40.3009}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &903851688
 MonoBehaviour:
@@ -23081,7 +23081,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Shop
+  m_text: Upgrade
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -23146,7 +23146,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 103.04092, w: 0}
+  m_margin: {x: 0, y: 0, z: -1.4938966, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -23555,6 +23555,8 @@ MonoBehaviour:
   coinPrefab: {fileID: 8511838643814157117, guid: 3c6ca68cde4cce14d9b13a68d239dc03, type: 3}
   coinSpreadRadius: 2
   maxDroppedCoins: 10
+  healthUpgrades: 0
+  attackUpgrades: 0
 --- !u!4 &974587160
 Transform:
   m_ObjectHideFlags: 0
@@ -45180,7 +45182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64cc0bf45cbcedf419545426b8848dd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackDamage: 2
+  attackDamage: 1
   attackRange: 0.5
   enemyLayerMask:
     serializedVersion: 2

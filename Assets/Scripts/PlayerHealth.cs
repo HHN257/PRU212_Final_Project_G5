@@ -45,6 +45,11 @@ public class PlayerHealth : MonoBehaviour
         {
             healthBar.SetHealth(currentHealth, maxHealth);
         }
+
+        if (GameManager.Instance != null)
+        {
+            maxHealth = maxHealth + GameManager.Instance.healthUpgrades;
+        }
     }
 
     void Update()
