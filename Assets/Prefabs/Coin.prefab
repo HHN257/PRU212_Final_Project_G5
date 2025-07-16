@@ -127,6 +127,7 @@ MonoBehaviour:
   pointValue: 5
   collectDelay: 0.1
   collectEffect: {fileID: 0}
+  collectSound: {fileID: 8300000, guid: c22e14558aa661341b4c1a44b2fe2ce0, type: 3}
 --- !u!58 &2795733500093537567
 CircleCollider2D:
   m_ObjectHideFlags: 0

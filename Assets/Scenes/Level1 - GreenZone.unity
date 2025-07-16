@@ -643,6 +643,8 @@ MonoBehaviour:
     m_Bits: 128
   attackPoint: {fileID: 1296883275}
   coinPrefab: {fileID: 75202825347698432, guid: d7d5552a762bd954cace04b0c568c093, type: 3}
+  atkSound: {fileID: 8300000, guid: bcae5d3641129bf42910889564566a20, type: 3}
+  chestHitSound: {fileID: 8300000, guid: e894881af2f0f9a419b8b798fe0f3c3b, type: 3}
 --- !u!114 &71819564
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -663,6 +665,8 @@ MonoBehaviour:
   healthBar: {fileID: 2011205033}
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
+  deathSound: {fileID: 8300000, guid: 31563ce11c690064d8195e0a4e828332, type: 3}
+  hitSound: {fileID: 8300000, guid: 0d9ad82e321ba174b91d48c2874b3738, type: 3}
 --- !u!70 &71819565
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -733,6 +737,10 @@ MonoBehaviour:
   skillShotSpeed: 8
   skillShotCooldown: 1
   attackCooldown: 0.3
+  walkSound: {fileID: 8300000, guid: 88a135907288843449aeaeea4baa3593, type: 3}
+  jumpSound: {fileID: 8300000, guid: 53d7800d04b053049a062ce53fb9e6a0, type: 3}
+  guardSound: {fileID: 8300000, guid: f5421719092386e47b352621514cc3e4, type: 3}
+  rollSound: {fileID: 8300000, guid: 67d38406dfcf22b4e82c900318efa160, type: 3}
 --- !u!1 &128705536
 GameObject:
   m_ObjectHideFlags: 0
@@ -3753,6 +3761,8 @@ MonoBehaviour:
   coinPrefab: {fileID: 8511838643814157117, guid: 3c6ca68cde4cce14d9b13a68d239dc03, type: 3}
   coinSpreadRadius: 2
   maxDroppedCoins: 10
+  healthUpgrades: 0
+  attackUpgrades: 0
 --- !u!4 &508400732
 Transform:
   m_ObjectHideFlags: 0
@@ -15614,7 +15624,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 534932927}
   m_HandleRect: {fileID: 534932926}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -15733,6 +15743,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1587633460}
   m_CullTransparentMesh: 1
+--- !u!1 &1596198667
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1596198669}
+  - component: {fileID: 1596198668}
+  m_Layer: 0
+  m_Name: MusicManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1596198668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1596198667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b2b69d09bd4ea64cbb9a76ff3b28f9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneMusic: {fileID: 8300000, guid: 924889f76b84ff744860ea612cfd36aa, type: 3}
+  winningMusic: {fileID: 8300000, guid: dce08d76c91638b41832a31e9ddbab71, type: 3}
+--- !u!4 &1596198669
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1596198667}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1621385166
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17758,3 +17814,4 @@ SceneRoots:
   - {fileID: 1086009641}
   - {fileID: 1496617593}
   - {fileID: 2024990498}
+  - {fileID: 1596198669}

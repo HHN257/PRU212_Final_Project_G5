@@ -19,6 +19,16 @@ public class PlayerHealth : MonoBehaviour
     public Color damageColor = Color.red;
     public float flashDuration = 0.1f;
 
+    [Header("Sound")]
+    public AudioClip deathSound; // Assign in inspector
+    private AudioSource deathAudioSource;
+
+    [Header("Sound")]
+    public AudioClip hitSound; // Assign in inspector
+    private AudioSource hitAudioSource; // Dedicated for hit sound
+
+
+
     // Private variables
     private Animator animator;
     private bool isInvincible = false;
@@ -31,6 +41,14 @@ public class PlayerHealth : MonoBehaviour
 
     void Start()
     {
+        deathAudioSource = gameObject.AddComponent<AudioSource>();
+        deathAudioSource.playOnAwake = false;
+        deathAudioSource.loop = false;
+
+        hitAudioSource = gameObject.AddComponent<AudioSource>();
+        hitAudioSource.playOnAwake = false;
+        hitAudioSource.loop = false;
+
         animator = GetComponent<Animator>();
         currentHealth = maxHealth;
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -78,6 +96,13 @@ public class PlayerHealth : MonoBehaviour
         if (isInvincible || isDead) return;
 
         currentHealth = Mathf.Max(0, currentHealth - damage);
+
+        // Play hit sound
+        if (hitAudioSource != null && hitSound != null)
+        {
+            hitAudioSource.clip = hitSound;
+            hitAudioSource.Play();
+        }
 
         if (healthBar != null)
         {
@@ -216,6 +241,12 @@ public class PlayerHealth : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+
+        if (deathAudioSource != null && deathSound != null)
+        {
+            deathAudioSource.clip = deathSound;
+            deathAudioSource.Play();
+        }
 
         // Handle coin loss through GameManager
         if (GameManager.Instance != null)

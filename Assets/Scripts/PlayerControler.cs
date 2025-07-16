@@ -60,6 +60,24 @@ public class PlayerController : MonoBehaviour
     public float attackCooldown = 0.5f; // Time in seconds between attacks
     private float lastAttackTime = -999f;
 
+    [Header("Sound")]
+    public AudioClip walkSound; // Assign in inspector
+    private AudioSource walkAudioSource; // Dedicated for walking sound
+
+    [Header("Sound")]
+    public AudioClip jumpSound; // Assign in inspector
+    private AudioSource jumpAudioSource; // Dedicated for jump sound
+
+    [Header("Sound")]
+    public AudioClip guardSound; // Assign in inspector
+    private AudioSource guardAudioSource; // Dedicated for guard sound
+
+    [Header("Sound")]
+    public AudioClip rollSound; // Assign in inspector
+    private AudioSource rollAudioSource; // Dedicated for roll sound
+
+
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -69,6 +87,23 @@ public class PlayerController : MonoBehaviour
 
         // Initialize block stamina
         currentBlockStamina = maxBlockStamina;
+
+        // Setup dedicated AudioSource for walking sound
+        walkAudioSource = gameObject.AddComponent<AudioSource>();
+        walkAudioSource.playOnAwake = false;
+        walkAudioSource.loop = true;
+
+        jumpAudioSource = gameObject.AddComponent<AudioSource>();
+        jumpAudioSource.playOnAwake = false;
+        jumpAudioSource.loop = false;
+
+        guardAudioSource = gameObject.AddComponent<AudioSource>();
+        guardAudioSource.playOnAwake = false;
+        guardAudioSource.loop = false;
+
+        rollAudioSource = gameObject.AddComponent<AudioSource>();
+        rollAudioSource.playOnAwake = false;
+        rollAudioSource.loop = false;
 
         // Ensure block bar is properly initialized
         if (blockBar != null && blockBarContainer != null)
@@ -99,6 +134,8 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("Block", false);
         Debug.Log("Block stamina depleted - forcing block to stop!");
     }
+
+    private bool wasBlocking = false;
 
     private void Update()
     {
@@ -166,6 +203,17 @@ public class PlayerController : MonoBehaviour
         // 2. We're already blocking and still have some stamina left
         bool isBlocking = wantsToBlock && ((!isCurrentlyBlocking && canStartBlocking) || (isCurrentlyBlocking && canContinueBlocking));
 
+        // Play guard sound only when blocking starts
+        if (isBlocking && !wasBlocking)
+        {
+            if (guardAudioSource != null && guardSound != null)
+            {
+                guardAudioSource.clip = guardSound;
+                guardAudioSource.Play();
+            }
+        }
+        wasBlocking = isBlocking;
+
         // Update our blocking state
         isCurrentlyBlocking = isBlocking;
         animator.SetBool("Block", isBlocking);
@@ -202,6 +250,23 @@ public class PlayerController : MonoBehaviour
 
         // ---- Movement Input ----
         float move = Input.GetAxisRaw("Horizontal"); // Replace with new Input if needed
+
+        // Play walking sound if moving and grounded
+        if (Mathf.Abs(move) > 0.1f && isGrounded)
+        {
+            if (walkSound != null && walkAudioSource != null && !walkAudioSource.isPlaying)
+            {
+                walkAudioSource.clip = walkSound;
+                walkAudioSource.Play();
+            }
+        }
+        else
+        {
+            if (walkAudioSource != null && walkAudioSource.isPlaying)
+            {
+                walkAudioSource.Stop();
+            }
+        }
 
         // Move the player
         rb.linearVelocity = new Vector2(move * moveSpeed, rb.linearVelocity.y);
@@ -283,6 +348,13 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             jumpPressed = false;
             isGrounded = false;
+
+            // Play jump sound
+            if (jumpAudioSource != null && jumpSound != null)
+            {
+                jumpAudioSource.clip = jumpSound;
+                jumpAudioSource.Play();
+            }
         }
 
         if (isAutoWalking)
@@ -324,6 +396,26 @@ public class PlayerController : MonoBehaviour
     {
         isAutoWalking = true;
         canMove = false;
+
+        // Play winning music
+        MusicManager mgr = FindObjectOfType<MusicManager>();
+        if (mgr != null)
+        {
+            mgr.PlayWinningMusic();
+        }
+
+        MusicManager2 mgr2 = FindObjectOfType<MusicManager2>();
+        if (mgr2 != null)
+        {
+            mgr2.PlayWinningMusic();
+        }
+
+        MusicManager3 mgr3 = FindObjectOfType<MusicManager3>();
+        if (mgr3 != null)
+        {
+            mgr2.PlayWinningMusic();
+        }
+
         StartCoroutine(LoadNextSceneAfterDelay());
     }
 
@@ -358,6 +450,13 @@ public class PlayerController : MonoBehaviour
     {
         isRolling = true;
         animator.SetTrigger("Roll");
+
+        // Play roll sound
+        if (rollAudioSource != null && rollSound != null)
+        {
+            rollAudioSource.clip = rollSound;
+            rollAudioSource.Play();
+        }
 
         if (TryGetComponent<PlayerHealth>(out var health))
         {

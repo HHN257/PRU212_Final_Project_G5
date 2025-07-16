@@ -38,6 +38,14 @@ public class BossController : MonoBehaviour
     public Color damageColor = Color.red;
     public float flashDuration = 0.1f;
 
+    [Header("Boss Action Sounds")]
+    public AudioClip shootArrowSound; // Assign in inspector
+    public AudioClip slashSound;      // Assign in inspector
+    private AudioSource actionAudioSource;
+
+    [Header("Boss Death Sound")]
+    public AudioClip bossDeathSound;
+
     private float attackCooldown = 2f;
     private float shootCooldown = 2f;
     private float attackTimer;
@@ -50,6 +58,11 @@ public class BossController : MonoBehaviour
 
     void Start()
     {
+
+        actionAudioSource = gameObject.AddComponent<AudioSource>();
+        actionAudioSource.playOnAwake = false;
+        actionAudioSource.loop = false;
+
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
@@ -88,6 +101,7 @@ public class BossController : MonoBehaviour
         animator.SetInteger("Phase", phase);
     }
 
+    private bool bossMusicPlayed = false;
     void Update()
     {
         if (player == null || health <= 0 || isAttacking)
@@ -109,6 +123,16 @@ public class BossController : MonoBehaviour
         // --- Main AI Logic: Only engage if player is within detection radius ---
         if (distance <= detectionRadius)
         {
+            if (!bossMusicPlayed)
+            {
+                MusicManager3 mgr = FindObjectOfType<MusicManager3>();
+                if (mgr != null)
+                {
+                    mgr.PlayBossMusic();
+                    bossMusicPlayed = true;
+                }
+            }
+
             // Show health bar and phase text when boss engages
             if (bossHealthBarContainer != null && !bossHealthBarContainer.activeInHierarchy)
             {
@@ -326,6 +350,13 @@ public class BossController : MonoBehaviour
 
     void Die()
     {
+        // Play boss death sound
+        if (actionAudioSource != null && bossDeathSound != null)
+        {
+            actionAudioSource.clip = bossDeathSound;
+            actionAudioSource.Play();
+        }
+
         animator.SetTrigger("IsDead");
         GetComponent<Collider2D>().enabled = false;
         this.enabled = false;
@@ -345,6 +376,13 @@ public class BossController : MonoBehaviour
     public void FireProjectile()
     {
         Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+
+        // Play shoot arrow sound
+        if (actionAudioSource != null && shootArrowSound != null)
+        {
+            actionAudioSource.clip = shootArrowSound;
+            actionAudioSource.Play();
+        }
     }
 
     IEnumerator FlashEffect()
@@ -358,6 +396,13 @@ public class BossController : MonoBehaviour
     public void DealMeleeDamage()
     {
         Collider2D[] hitPlayers = Physics2D.OverlapCircleAll(meleeAttackPoint.position, meleeAttackRange, playerLayer);
+
+        // Play slash sound
+        if (actionAudioSource != null && slashSound != null)
+        {
+            actionAudioSource.clip = slashSound;
+            actionAudioSource.Play();
+        }
 
         foreach (Collider2D playerCollider in hitPlayers)
         {

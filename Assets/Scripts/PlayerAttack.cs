@@ -16,9 +16,26 @@ public class PlayerAttack : MonoBehaviour
     [Header("Drops")]
     public GameObject coinPrefab;
 
+    [Header("Sound")]
+    public AudioClip atkSound; // Assign in inspector
+    private AudioSource atkAudioSource; // Dedicated for atk sound
+
+    [Header("Chest Sound")]
+    public AudioClip chestHitSound; // Assign in inspector
+    private AudioSource chestAudioSource; // Dedicated for chest hit sound
+
 
     void Start()
     {
+        // Setup dedicated atkSource for walking sound
+        atkAudioSource = gameObject.AddComponent<AudioSource>();
+        atkAudioSource.playOnAwake = false;
+        atkAudioSource.loop = false;
+
+        chestAudioSource = gameObject.AddComponent<AudioSource>();
+        chestAudioSource.playOnAwake = false;
+        chestAudioSource.loop = false;
+
         animator = GetComponent<Animator>();
 
         // Create attack point if not assigned
@@ -47,6 +64,9 @@ public class PlayerAttack : MonoBehaviour
     {
         Collider2D[] hitTargets = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayerMask);
 
+        atkAudioSource.clip = atkSound;
+        atkAudioSource.Play();
+
         foreach (Collider2D target in hitTargets)
         {
             // 1. Check for JumpBoost
@@ -62,6 +82,12 @@ public class PlayerAttack : MonoBehaviour
             if (enemyHealth != null)
             {
                 enemyHealth.TakeDamage(attackDamage, transform.position);
+                // Play chest hit sound
+                if (chestAudioSource != null && chestHitSound != null)
+                {
+                    chestAudioSource.clip = chestHitSound;
+                    chestAudioSource.Play();
+                }
                 continue;
             }
 
@@ -70,12 +96,25 @@ public class PlayerAttack : MonoBehaviour
             if (boss != null)
             {
                 boss.TakeDamage(attackDamage);
+                // Play chest hit sound
+                if (chestAudioSource != null && chestHitSound != null)
+                {
+                    chestAudioSource.clip = chestHitSound;
+                    chestAudioSource.Play();
+                }
                 continue;
             }
 
             // 3. Destroy breakable blocks
             if (target.CompareTag("BreakableBlock"))
             {
+                // Play chest hit sound
+                if (chestAudioSource != null && chestHitSound != null)
+                {
+                    chestAudioSource.clip = chestHitSound;
+                    chestAudioSource.Play();
+                }
+
                 // Drop a coin after destroying the block
                 if (coinPrefab != null)
                 {

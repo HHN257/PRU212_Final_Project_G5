@@ -2,16 +2,37 @@ using UnityEngine;
 
 public class Coin : MonoBehaviour
 {
+    [Header("Coin Settings")]
     public int pointValue = 1;
     public float collectDelay = 0.1f; // Small delay before destroying
     public GameObject collectEffect; // Optional particle effect
 
+    [Header("Sound")]
+    public AudioClip collectSound; // Assign in inspector
+    private AudioSource audioSource;
+
     private bool isCollected = false;
+
+    void Start()
+    {
+        // Setup AudioSource
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+    }
 
     public void Collect()
     {
         if (isCollected) return; // Prevent double collection
         isCollected = true;
+
+        // Play collect sound
+        if (collectSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(collectSound);
+        }
 
         // Add to score if GameManager exists
         if (GameManager.Instance != null)
