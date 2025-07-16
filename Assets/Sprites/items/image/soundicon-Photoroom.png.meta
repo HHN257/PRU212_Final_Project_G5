@@ -222,7 +222,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      soundicon-Photoroom_0: 7465439420218169562
+      soundicon-Photoroom_1: 682227509353878269
+      soundicon-Photoroom_2: -4288586164745286082
+      soundicon-Photoroom_3: -5103397212602260236
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

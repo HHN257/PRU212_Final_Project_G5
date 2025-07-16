@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 74f194e6bcbed7748bbdbf3b28ee14ca
+guid: f66c5f8cbec9e554e82674196694ff55
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5015329872439729144
-    second: musicicon_0
+      213: 3609785661710425310
+    second: SwordCoin_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: musicicon_0
+      name: SwordCoin_0
       rect:
         serializedVersion: 2
-        x: 138
-        y: 139
-        width: 283
-        height: 283
+        x: 2
+        y: 0
+        width: 1022
+        height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8fbdc2652f70a9540800000000000000
-      internalID: 5015329872439729144
+      spriteID: edc5c811fe8881230800000000000000
+      internalID: 3609785661710425310
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      musicicon_0: 5015329872439729144
+      SwordCoin_0: 3609785661710425310
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
