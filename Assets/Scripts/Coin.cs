@@ -17,6 +17,7 @@ public class Coin : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.AddPoints(pointValue);
+            GameManager.Instance.coin += pointValue;
         }
         else
         {

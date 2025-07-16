@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      TREE 14_SANDY GREEN_0: 717353629390470238
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

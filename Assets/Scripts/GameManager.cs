@@ -17,6 +17,9 @@ public class GameManager : MonoBehaviour
     public float coinSpreadRadius = 2f; // How far coins spread when dropped
     public int maxDroppedCoins = 10; // Maximum number of physical coins to spawn
 
+    public int healthUpgrades = 0;
+    public int attackUpgrades = 0;
+
     private const string COIN_SAVE_KEY = "PlayerCoins";
 
     void Awake()
@@ -116,6 +119,19 @@ public class GameManager : MonoBehaviour
     public void ResetCoins()
     {
         coin = 0;
+        SaveCoins();
+        UpdateUI();
+    }
+
+    public void ResetGameProgress()
+    {
+        coin = 0;
+        healthUpgrades = 0;
+        attackUpgrades = 0;
+        PlayerPrefs.DeleteKey("PlayerHealthLevel");
+        PlayerPrefs.DeleteKey("PlayerAttackLevel");
+        PlayerPrefs.Save();
+        Debug.Log("ResetGameProgress called. PlayerPrefs for upgrades deleted.");
         SaveCoins();
         UpdateUI();
     }
