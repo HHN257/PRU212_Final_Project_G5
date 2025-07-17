@@ -15339,8 +15339,8 @@ MonoBehaviour:
   dialogueText: {fileID: 648253468}
   scrollRect: {fileID: 1277485661}
   lines:
-  - Welcome to the world of...
-  - Press WASD to Move
+  - Welcome to the world of Rift Breaker
+  - Press A D to Move, Space To Jump
   - J to Attack, K To Roll and L to Block
 --- !u!1001 &1500666705
 PrefabInstance:

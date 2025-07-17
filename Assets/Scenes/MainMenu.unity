@@ -1620,24 +1620,24 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '- Use W A S D To Move
+  m_text: '- Use A D To Move, Space To Jump
 
 
     - Press J To Attack
 
 
-    - Player Can Attack
-    3 Times A Rows
+    - Player
+    Can Attack 3 Times A Rows
 
 
     - Press U To Use Skillshot
 
 
-    - Press K To Roll
+    - Press K To
+    Roll
 
 
-    -
-    Press L To Block'
+    - Press L To Block'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
