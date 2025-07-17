@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7decf71d60cb2fe438b4d9a0a160a517, type: 3}
+  m_Name: SceneLoaderManager
+  m_EditorClassIdentifier: 
+  loadingScreenMode: 1
+  sceneList:
+  - SceneName: Level1 - GreenZone
+    SceneAsset: {fileID: 102900000, guid: e477e2a2b5ab01e4bb5419b2b9bdd14f, type: 3}
+    DisplayName: Level1 - GreenZone
+    Description: 
+    SkipType: 3
+    LoadingType: 1
+    FakeLoadingTime: 5
+    Backgrounds:
+    - {fileID: -3410195286835693093, guid: bee3206412d9ee34eb13ae2198f5b735, type: 3}
+    - {fileID: -4683934729102489045, guid: 04605d632524b064bbcd1b5fc793632e, type: 3}
+  - SceneName: Level2 - Ruin
+    SceneAsset: {fileID: 102900000, guid: 05a783d7de7a99d428b1dad2e874eb0f, type: 3}
+    DisplayName: Level2 - Ruin
+    Description: 
+    SkipType: 3
+    LoadingType: 0
+    FakeLoadingTime: 2
+    Backgrounds: []
+  - SceneName: Level3- Dungeon
+    SceneAsset: {fileID: 102900000, guid: 08cfca7059834df41ac78ebfc9788fbe, type: 3}
+    DisplayName: Level3- Dungeon
+    Description: 
+    SkipType: 3
+    LoadingType: 0
+    FakeLoadingTime: 2
+    Backgrounds: []
+  - SceneName: MainMenu
+    SceneAsset: {fileID: 102900000, guid: 1a54acea2f1043d4ab6dc09ffe8c9adb, type: 3}
+    DisplayName: MainMenu
+    Description: 
+    SkipType: 3
+    LoadingType: 0
+    FakeLoadingTime: 2
+    Backgrounds: []
+  tipsList:
+  - Create beautiful loading screens for improved your game
+  - Easy to use and implement
+  - 'Remember that have 3 diferent styles for select. '
+  - Create as many tips as you need
+  - Improved the look of your game with awasome backgrounds.
+  - Good backgrounds sounds increase the motivation of players.
+  buildSettingsAsFallback: 1
+  useSynchronousAsFallback: 1

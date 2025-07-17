@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class BossController : MonoBehaviour
 {
@@ -54,6 +56,12 @@ public class BossController : MonoBehaviour
     public Color damageTextColor = Color.red;
     public float damageTextYOffset = 2f;
     public float damageTextDuration = 1.2f;
+
+    [Header("To Be Continue")]
+    public GameObject toBeContinuePanel; // Kéo panel vào đây
+    public AudioClip toBeContinueClip;   // Kéo file âm thanh vào đây
+    public Image fadeImage; // Kéo image này vào Inspector
+    public float fadeDuration = 1.5f; // Thời gian hiệu ứng tối dần
 
     private float attackCooldown = 2f;
     private float shootCooldown = 2f;
@@ -373,21 +381,56 @@ public class BossController : MonoBehaviour
             audioSource.PlayOneShot(bossDieClip);
         animator.SetTrigger("IsDead");
         GetComponent<Collider2D>().enabled = false;
-        StartCoroutine(DisableBossAfterDieSound());
+        StartCoroutine(ShowToBeContinueAfterDie());
         // Không gọi this.enabled = false và các lệnh khác ở đây nữa
         // ... các lệnh khác (ẩn health bar, phase text) sẽ chuyển vào coroutine
     }
 
-    private System.Collections.IEnumerator DisableBossAfterDieSound()
+    private IEnumerator ShowToBeContinueAfterDie()
     {
-        float delay = bossDieClip != null ? bossDieClip.length : 1.5f;
-        yield return new WaitForSeconds(delay);
-        this.enabled = false;
-        // Hide health bar and phase text on death
+        float bossDieDelay = bossDieClip != null ? bossDieClip.length : 1.5f;
+        yield return new WaitForSeconds(bossDieDelay);
+
+        // Ẩn health bar, phase text
         if (bossHealthBarContainer != null)
             bossHealthBarContainer.SetActive(false);
         if (phaseTextGameObject != null)
             phaseTextGameObject.SetActive(false);
+
+        // Hiệu ứng tối dần màn hình
+        if (fadeImage != null)
+            yield return StartCoroutine(FadeInBlack());
+
+        // Hiện panel To Be Continue
+        if (toBeContinuePanel != null)
+            toBeContinuePanel.SetActive(true);
+
+        // Phát âm thanh To Be Continue
+        if (audioSource != null && toBeContinueClip != null)
+            audioSource.PlayOneShot(toBeContinueClip);
+
+        // Đợi 4.16 giây (hoặc đúng bằng clip)
+        yield return new WaitForSeconds(4.16f);
+
+        // Chuyển về Main Menu
+        SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+        this.enabled = false;
+    }
+
+    private IEnumerator FadeInBlack()
+    {
+        float elapsed = 0f;
+        Color color = fadeImage.color;
+        while (elapsed < fadeDuration)
+        {
+            float t = elapsed / fadeDuration;
+            color.a = Mathf.Lerp(0f, 1f, t);
+            fadeImage.color = color;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        color.a = 1f;
+        fadeImage.color = color;
     }
 
     // Called from Animation Event
