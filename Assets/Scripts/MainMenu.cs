@@ -16,7 +16,8 @@ public class MainMenu : MonoBehaviour
             GameManager.Instance.ResetGameProgress();
         }
         yield return null; // Wait one frame to ensure PlayerPrefs are flushed
-        SceneManager.LoadSceneAsync(1);
+        yield return new WaitForSeconds(2f); // Thêm delay 2 giây trước khi vào scene mới
+        SceneManager.LoadSceneAsync("LoadingScreen");
     }
 
     public void QuitGame()

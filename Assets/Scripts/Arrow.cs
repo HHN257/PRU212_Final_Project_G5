@@ -21,9 +21,20 @@ public class Arrow : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
+            PlayerController playerController = other.GetComponent<PlayerController>();
             if (playerHealth != null && !playerHealth.IsInvincible())
             {
-                playerHealth.TakeDamage(damage, transform.position);
+                if (playerController != null && playerController.IsBlocking)
+                {
+                    // Phát âm thanh block khi block arrow
+                    if (playerController.audioSource != null && playerController.blockClip != null)
+                        playerController.audioSource.PlayOneShot(playerController.blockClip);
+                    // Không gây damage, chỉ hủy arrow
+                }
+                else
+                {
+                    playerHealth.TakeDamage(damage, transform.position);
+                }
             }
             Destroy(gameObject);
         }
