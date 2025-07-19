@@ -158,6 +158,10 @@ public class ShopManager : MonoBehaviour
         playerHealth.maxHealth += healthUpgradeAmount;
         playerHealth.currentHealth += healthUpgradeAmount; // Also heal the player
 
+        // Lưu healthLevel vào PlayerPrefs
+        PlayerPrefs.SetInt("PlayerHealthLevel", healthLevel);
+        PlayerPrefs.Save();
+
         // Update health bar
         if (playerHealth.healthBar != null)
         {
@@ -170,7 +174,7 @@ public class ShopManager : MonoBehaviour
             upgradeEffect.PlayHealthUpgradeEffect();
         }
 
-        // Save and recalculate
+        // Save và recalculate
         SaveUpgradeLevels();
         CalculateUpgradeCosts();
         UpdateUI();

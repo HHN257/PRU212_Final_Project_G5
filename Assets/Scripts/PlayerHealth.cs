@@ -4,7 +4,8 @@ using UnityEngine;
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Health Settings")]
-    public int maxHealth = 5;
+    public int baseMaxHealth = 5; // Giá trị gốc, set trong Inspector
+    public int maxHealth;
     public int currentHealth;
 
     [Header("Damage Settings")]
@@ -19,6 +20,10 @@ public class PlayerHealth : MonoBehaviour
     public Color damageColor = Color.red;
     public float flashDuration = 0.1f;
 
+    public AudioSource audioSource;
+    public AudioClip dieClip; // Âm thanh khi die
+    public AudioClip hitClip; // Âm thanh khi bị trúng đòn
+
     // Private variables
     private Animator animator;
     private bool isInvincible = false;
@@ -32,6 +37,11 @@ public class PlayerHealth : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
+        // Đọc healthLevel từ PlayerPrefs (mặc định 1 nếu chưa có)
+        int healthLevel = PlayerPrefs.GetInt("PlayerHealthLevel", 1);
+        int healthUpgradeAmount = 1; // Nếu có biến này ở ShopManager, nên đồng bộ
+        baseMaxHealth = 5; // Nếu có thể, nên lấy từ Inspector
+        maxHealth = baseMaxHealth + (healthLevel - 1) * healthUpgradeAmount;
         currentHealth = maxHealth;
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
@@ -44,11 +54,6 @@ public class PlayerHealth : MonoBehaviour
         if (healthBar != null)
         {
             healthBar.SetHealth(currentHealth, maxHealth);
-        }
-
-        if (GameManager.Instance != null)
-        {
-            maxHealth = maxHealth + GameManager.Instance.healthUpgrades;
         }
     }
 
@@ -88,6 +93,12 @@ public class PlayerHealth : MonoBehaviour
         if (spriteRenderer != null)
         {
             StartCoroutine(FlashEffect());
+        }
+
+        // Phát âm thanh bị trúng đòn (nếu chưa chết)
+        if (audioSource != null && hitClip != null && currentHealth > 0)
+        {
+            audioSource.PlayOneShot(hitClip);
         }
 
         // Apply knockback
@@ -217,6 +228,10 @@ public class PlayerHealth : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
+        // Phát âm thanh die
+        if (audioSource != null && dieClip != null)
+            audioSource.PlayOneShot(dieClip);
+
         // Handle coin loss through GameManager
         if (GameManager.Instance != null)
         {
@@ -264,6 +279,11 @@ public class PlayerHealth : MonoBehaviour
     public void Respawn()
     {
         isDead = false;
+        // Đọc lại healthLevel khi respawn
+        int healthLevel = PlayerPrefs.GetInt("PlayerHealthLevel", 1);
+        int healthUpgradeAmount = 1; // Nếu có biến này ở ShopManager, nên đồng bộ
+        baseMaxHealth = 5;
+        maxHealth = baseMaxHealth + (healthLevel - 1) * healthUpgradeAmount;
         currentHealth = maxHealth;
 
         if (healthBar != null)

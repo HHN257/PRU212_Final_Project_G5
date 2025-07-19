@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class EnemyController : MonoBehaviour
 {
@@ -28,6 +29,12 @@ public class EnemyController : MonoBehaviour
     //private float waitTimer = 0f;
     //private bool isWaiting = false;
     private float lastAttackTime = 0f;
+    private float lastTurnTime = 0f;
+    public float turnCooldown = 0.5f; // Thời gian chờ giữa các lần quay đầu
+
+    // Thời gian delay giữa các lần phát âm thanh block cho mỗi player
+    private static Dictionary<GameObject, float> lastBlockSoundTime = new Dictionary<GameObject, float>();
+    private const float blockSoundDelay = 2f;
 
     // Components
     private Rigidbody2D rb;
@@ -35,7 +42,7 @@ public class EnemyController : MonoBehaviour
     private Animator animator; // Optional, if you have animations
 
     // States
-    public enum EnemyState { Patrolling, Attacking, ExecutingAttack }
+    public enum EnemyState { Patrolling, Chasing, Attacking, ExecutingAttack }
     public EnemyState currentState = EnemyState.Patrolling;
 
     void Start()
@@ -65,20 +72,32 @@ public class EnemyController : MonoBehaviour
         switch (currentState)
         {
             case EnemyState.Patrolling:
-                if (distanceToPlayer <= attackRange && Time.time >= lastAttackTime + attackCooldown)
+                if (distanceToPlayer <= detectionRange)
                 {
-                    currentState = EnemyState.Attacking;
+                    currentState = EnemyState.Chasing;
                 }
                 else
                 {
                     Patrol();
                 }
                 break;
-
+            case EnemyState.Chasing:
+                if (distanceToPlayer <= attackRange)
+                {
+                    currentState = EnemyState.Attacking;
+                }
+                else if (distanceToPlayer > detectionRange)
+                {
+                    currentState = EnemyState.Patrolling;
+                }
+                else
+                {
+                    ChasePlayer();
+                }
+                break;
             case EnemyState.Attacking:
                 Attack();
                 break;
-
             case EnemyState.ExecutingAttack:
                 // Stay still during attack animation
                 rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
@@ -88,7 +107,7 @@ public class EnemyController : MonoBehaviour
         // Animator updates
         if (animator != null)
         {
-            animator.SetBool("isWalking", currentState == EnemyState.Patrolling && rb.linearVelocity.x != 0);
+            animator.SetBool("isWalking", (currentState == EnemyState.Patrolling && rb.linearVelocity.x != 0) || currentState == EnemyState.Chasing);
             animator.SetBool("IsAttacking", currentState == EnemyState.Attacking || currentState == EnemyState.ExecutingAttack);
         }
     }
@@ -96,10 +115,24 @@ public class EnemyController : MonoBehaviour
 
     void Patrol()
     {
+        // Nếu phát hiện player trong detectionRange, chuyển sang chase
+        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+        if (distanceToPlayer <= detectionRange)
+        {
+            // Quay đầu về phía player
+            if ((player.position.x < transform.position.x && movingRight) || (player.position.x > transform.position.x && !movingRight))
+            {
+                movingRight = !movingRight;
+                lastTurnTime = Time.time;
+            }
+            currentState = EnemyState.Chasing;
+            return;
+        }
         // Check if we should turn around
-        if (ShouldTurnAround())
+        if (ShouldTurnAround() && Time.time - lastTurnTime > turnCooldown)
         {
             movingRight = !movingRight; // Flip immediately
+            lastTurnTime = Time.time;
         }
 
         // Move in current direction
@@ -114,20 +147,18 @@ public class EnemyController : MonoBehaviour
             animator.SetBool("isWalking", true);
     }
 
-    //void ChasePlayer()
-    //{
-    //    Vector2 direction = (player.position - transform.position).normalized;
-    //    rb.linearVelocity = new Vector2(direction.x * attackSpeed, rb.linearVelocity.y);
-
-    //    // Flip sprite based on movement direction
-    //    //spriteRenderer.flipX = direction.x < 0;
-
-    //    // Set walking animation for chasing
-    //    if (animator != null)
-    //    {
-    //        animator.SetBool("isWalking", true);
-    //    }
-    //}
+    void ChasePlayer()
+    {
+        Vector2 direction = (player.position - transform.position).normalized;
+        rb.linearVelocity = new Vector2(direction.x * attackSpeed, rb.linearVelocity.y);
+        // Flip sprite based on movement direction
+        spriteRenderer.flipX = direction.x < 0;
+        // Set walking animation for chasing
+        if (animator != null)
+        {
+            animator.SetBool("isWalking", true);
+        }
+    }
 
     void Attack()
     {
@@ -145,27 +176,13 @@ public class EnemyController : MonoBehaviour
             PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             PlayerController playerController = player.GetComponent<PlayerController>();
 
-            //if (playerHealth != null && !playerHealth.IsInvincible())
-            //{
-            //    if (playerController != null && playerController.IsBlocking)
-            //    {
-            //        Debug.Log("Attack was blocked!");
-
-            //        // Apply knockback to enemy
-            //        float knockbackForce = 2f;
-            //        Vector2 knockbackDir = (transform.position - player.position).normalized;
-            //        rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
-            //    }
-            //    else
-            //    {
-            //        playerHealth.TakeDamage(attackDamage, transform.position);
-            //    }
-            //}
+            if (playerHealth != null && !playerHealth.IsInvincible())
+            {
+                // Instead of immediately changing state or setting cooldown here,
+                // we transition to a state where the animation plays out.
+                currentState = EnemyState.ExecutingAttack;
+            }
         }
-
-        // Instead of immediately changing state or setting cooldown here,
-        // we transition to a state where the animation plays out.
-        currentState = EnemyState.ExecutingAttack;
     }
 
     void ResetAttackAnimation()
@@ -232,6 +249,18 @@ public class EnemyController : MonoBehaviour
             if (playerController != null && playerController.IsBlocking)
             {
                 Debug.Log("Attack was blocked!");
+                // Phát âm thanh block khiên với delay 2 giây
+                float now = Time.time;
+                float lastTime = 0f;
+                lastBlockSoundTime.TryGetValue(player.gameObject, out lastTime);
+                if (now - lastTime >= blockSoundDelay)
+                {
+                    if (playerController.audioSource != null && playerController.blockClip != null)
+                    {
+                        playerController.audioSource.PlayOneShot(playerController.blockClip);
+                    }
+                    lastBlockSoundTime[player.gameObject] = now;
+                }
                 float knockbackForce = 2f;
                 Vector2 knockbackDir = (transform.position - player.position).normalized;
                 rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);

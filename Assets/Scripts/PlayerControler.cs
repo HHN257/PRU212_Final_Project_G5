@@ -60,6 +60,17 @@ public class PlayerController : MonoBehaviour
     public float attackCooldown = 0.5f; // Time in seconds between attacks
     private float lastAttackTime = -999f;
 
+    public AudioSource audioSource;
+    public AudioClip dashClip;
+    public AudioClip attackClip; // Âm thanh khi chém (J)
+    public AudioClip jumpClip; // Âm thanh khi nhảy (Space)
+    public AudioClip specialSkillClip; // Âm thanh khi dùng skill đặc biệt (U)
+    public AudioClip walkClip; // Âm thanh khi đi bộ (A, D, mũi tên trái/phải)
+    public AudioClip blockClip; // Âm thanh khi block thành công Enemy
+    public AudioClip coinClip; // Âm thanh khi nhặt coin
+
+    private bool isWalkingSoundPlaying = false;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -201,7 +212,30 @@ public class PlayerController : MonoBehaviour
         }
 
         // ---- Movement Input ----
-        float move = Input.GetAxisRaw("Horizontal"); // Replace with new Input if needed
+        float move = Input.GetAxisRaw("Horizontal");
+
+        // Phát âm thanh đi bộ lặp khi giữ phím, dừng khi thả phím hoặc khi không ở trên mặt đất
+        if (Mathf.Abs(move) > 0.1f && isGrounded)
+        {
+            if (audioSource != null && walkClip != null)
+            {
+                if (audioSource.clip != walkClip || !audioSource.isPlaying)
+                {
+                    audioSource.clip = walkClip;
+                    audioSource.loop = true;
+                    audioSource.Play();
+                }
+            }
+        }
+        else
+        {
+            if (audioSource != null && audioSource.clip == walkClip && audioSource.isPlaying)
+            {
+                audioSource.Stop();
+                audioSource.clip = null;
+                audioSource.loop = false;
+            }
+        }
 
         // Move the player
         rb.linearVelocity = new Vector2(move * moveSpeed, rb.linearVelocity.y);
@@ -232,12 +266,18 @@ public class PlayerController : MonoBehaviour
         // ---- Jump Input ----
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
+            // Phát âm thanh nhảy
+            if (audioSource != null && jumpClip != null)
+                audioSource.PlayOneShot(jumpClip);
             jumpPressed = true;
         }
 
         // ---- Attack Input ----
         if (Input.GetKeyDown(KeyCode.J) && Time.time - lastAttackTime > attackCooldown)
         {
+            // Phát âm thanh chém
+            if (audioSource != null && attackClip != null)
+                audioSource.PlayOneShot(attackClip);
             switch (attackStage)
             {
                 case 0:
@@ -260,9 +300,19 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(Roll());
         }
 
+        // ---- Special Combo: K + J ----
+        if (Input.GetKey(KeyCode.K) && Input.GetKeyDown(KeyCode.J))
+        {
+            if (audioSource != null && dashClip != null)
+                audioSource.PlayOneShot(dashClip);
+        }
+
         // ---- Skill Shot Input ----
         if (Input.GetKeyDown(KeyCode.U) && Time.time - lastSkillShotTime > skillShotCooldown && !isRolling && !isBlocking)
         {
+            // Phát âm thanh skill đặc biệt
+            if (audioSource != null && specialSkillClip != null)
+                audioSource.PlayOneShot(specialSkillClip);
             animator.SetTrigger("Attack1");
             FireSkillShot();
             lastSkillShotTime = Time.time;
@@ -305,6 +355,12 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("Jump", false);
             animator.SetInteger("AnimState", 0); // Reset to idle when landing
         }
+        // Phát âm thanh block khi va chạm Enemy và đang block
+        if (collision.gameObject.CompareTag("Enemy") && animator.GetBool("Block"))
+        {
+            if (audioSource != null && blockClip != null)
+                audioSource.PlayOneShot(blockClip);
+        }
     }
 
     private void OnCollisionExit2D(Collision2D collision)
@@ -329,7 +385,7 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator LoadNextSceneAfterDelay()
     {
-        yield return new WaitForSeconds(5f); // Wait 5 seconds
+        yield return new WaitForSeconds(5f); // Wait 5 seconds (tăng thời gian autowalk)
 
         // Start loading the scene asynchronously to prevent game freeze and rendering glitches
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(nextSceneName);
@@ -346,6 +402,9 @@ public class PlayerController : MonoBehaviour
         // Coin Collection Trigger
         if (other.CompareTag("Coin"))
         {
+            // Phát âm thanh nhặt coin với volume 20%
+            if (audioSource != null && coinClip != null)
+                audioSource.PlayOneShot(coinClip, 0.2f);
             Coin coin = other.GetComponent<Coin>();
             if (coin != null)
             {
@@ -356,6 +415,10 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator Roll()
     {
+        // Phát âm thanh dash
+        if (audioSource != null && dashClip != null)
+            audioSource.PlayOneShot(dashClip);
+
         isRolling = true;
         animator.SetTrigger("Roll");
 
